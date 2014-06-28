@@ -1,3 +1,3 @@
 
-[vSRX as service](abc)
+[vSRX as service](vsrx-service.md)
 
