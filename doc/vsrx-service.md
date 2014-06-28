@@ -1,16 +1,20 @@
 
 # 1. vSRX and OpenStack
-[vSRX](http://www.juniper.net/us/en/products-services/security/firefly-perimeter/#overview) (Firefly Perimeter) is the virtualization of SRX service gateway provided by Juniper.
+vSRX (Firefly Perimeter) is the virtualization of SRX service gateway provided by Juniper. This is the product page.
 
-The KVM-based vSRX is packed in JVA container. It's available [here](http://www.juniper.net/support/downloads/?p=firefly#sw) for download.
+http://www.juniper.net/us/en/products-services/security/firefly-perimeter/#overview
+
+The KVM-based vSRX is packed in JVA container. It's available on this link for download.
+
+http://www.juniper.net/support/downloads/?p=firefly#sw
 
 ## 1.1 Add vSRX image
-1. Download vSRX JVA container and unpack it.
+* Download vSRX JVA container and unpack it.
 ```
 # chmod 755 junos-vsrx-12.1X46-D20.5-domestic.jva
 # ./junos-vsrx-12.1X46-D20.5-domestic.jva -x
 ```
-2. Add vSRX image into OpenStack.
+* Add vSRX image into OpenStack.
 ```
 # cd junos-vsrx-12.1X46-D20.5-domestic-1400526077
 # glance --os-username <admin username> --os-password <admin password> --os-tenant-name admin --os-auth-url http://127.0.0.1:5000/v2.0/ image-create --name "vSRX 12.1X46-D20.5" --disk-format qcow2 --container-format bare --is-public True --file junos-vsrx-12.1X46-D20.5-domestic.img 
@@ -28,7 +32,7 @@ This is the standard option for OpenStack to pass data into VM after launching i
 ### 1.3.2 File injection
 This is another option for OpenStack to transfer data into VM. Potentially, a configuration file can be injected into vSRX and get applied. This is not supported by vSRX yet.
 ### 1.3.3 Sysinfo
-This is the only option supported by vSRX to get data for initial configuration. But it's not supported by OpenStack. To make this work with OpenStack, one additionaly line needs to be added into function get_guest_config_sysinfo() in class LibvirtDriver() in nova/virt/libvirt/driver.py. And service openstack-nova-compute needs to be restarted to apply the update.
+This is the only option supported by vSRX to get data for initial configuration. But it's not supported by OpenStack. To make this work with OpenStack, one additionaly line needs to be added into function `get_guest_config_sysinfo()` in `class LibvirtDriver()` in nova/virt/libvirt/driver.py. And service openstack-nova-compute needs to be restarted to apply the update.
 ```
          sysinfo.system_serial = self.get_host_uuid()
          sysinfo.system_uuid = instance['uuid']
@@ -36,7 +40,10 @@ This is the only option supported by vSRX to get data for initial configuration.
 
          return sysinfo
 ```
-The password is the hashed string of 'passWD'.
+The root password `rootpw` is the hashed string of 'passWD'.
+```
+# service openstack-nova-compute restart
+```
 
 This update will add new entry into /var/lib/nova/instances/<uuid>/libvirt.xml for libvirt to create the VM. There is a script in vSRX to read this sysinfo and apply it to configuration. This is the automatic initial provistioning without manual configuration. Then the further provisioning can be done.
 # 2. vSRX and Contrail
@@ -44,9 +51,14 @@ vSRX can be launched by Contrail service monitor as a service in service chain.
 # 3. Demo of NAT
 ## 3.1 Overview
 ![Demo topo](vsrx-nat-topo.png)
+* A tenant space is allocated in the cloud for each customer.
+* An access virtual network is created in each tenant and extened for customer access by gateway.
+* A public virtual network is created in admin tenant to provide public access for all customers. It's extended to public by gateway.
+* A  management virtual network is created in admin tenant for managing all service instances. It's also extended to physical network by gateway, because the orchestration program runs on physical network.
 ## 3.2 Prepare
-Given a fresh installation, some configurations need to be done to prepare the demo. The config utility is from [here](https://github.com/tonyliu0592/orch).
-* As 1.3.3, update openstack-nova-compute on compute node.
+Given a fresh installation, some configurations need to be done to prepare the demo. Some utilities are required from this repository.
+https://github.com/tonyliu0592/orch
+* As described in 1.3.3, nova needs to be updated on all compute nodes.
 * Get code from GitHub.
 ```
 # git clone https://github.com/tonyliu0592/orch.git
@@ -56,7 +68,7 @@ Given a fresh installation, some configurations need to be done to prepare the d
 # mv ncclient.git/ncclient ./
 # rm -fr ncclient.git
 ```
-Check script config to confirm default settings.
+Check script `config` to confirm default settings.
 * VN "management" and "public" with public address in administration tenant
 ```
 # config --tenant admin add ipam ipam-default
@@ -197,6 +209,14 @@ routing-instances {
 }
 ```
 ## 3.3 Launch and provisioning service
-
+Once the cloud is prepared, running utility `vsrx` will do the followings.
+* Launch vSRX service instance based on pre-defined service template.
+* Attach the management, left and right interfaces of vSRX service instance on management, access and public virtual networks respectively.
+* Since the service instance is across tenants, service policy doesn't work here. Static interface route needs to be added in access virtual network to steer traffic to vSRX.
+* Provisioning vSRX for NAT service.
+```
 vsrx-launch --
+```
+At the end, customer will have NAT service in the cloud and be able to access internet.
+
 
