@@ -1,0 +1,15 @@
+#!/bin/env python
+
+from config import *
+
+DEFAULT_API_SERVER = '10.84.18.2'
+DEFAULT_USERNAME = 'admin'
+DEFAULT_PASSWORD = 'contrail123'
+DEFAULT_TENANT = 'demo'
+DEFAULT_REGION = 'RegionOne'
+
+if __name__ == '__main__':
+    ConfigShell().main(api_server = DEFAULT_API_SERVER,
+            username = DEFAULT_USERNAME, password = DEFAULT_PASSWORD,
+            tenant_name = DEFAULT_TENANT, region_name = DEFAULT_REGION)
+

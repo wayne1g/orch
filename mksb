@@ -1,0 +1,17 @@
+#!/bin/sh
+
+path="/usr/lib/python2.6/site-packages/"
+file_list="cfgm_common \
+           chardet \
+           novaclient \
+           prettytable.py \
+           requests \
+           six.py \
+           urllib3 \
+           vnc_api"
+
+for file in $file_list
+do
+  cp -r $path$file ./
+done
+

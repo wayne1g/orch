@@ -1,0 +1,9 @@
+#!/bin/env python
+
+from op import *
+
+DEFAULT_OP_SERVER = '127.0.0.1'
+
+if __name__ == '__main__':
+    OpShell().main(op_server = DEFAULT_OP_SERVER)
+
