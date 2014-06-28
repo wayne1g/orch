@@ -43,10 +43,20 @@ This update will add new entry into /var/lib/nova/instances/<uuid>/libvirt.xml f
 vSRX can be launched by Contrail service monitor as a service in service chain.
 # 3. Demo of NAT
 ## 3.1 Overview
-
+![Demo topo](vsrx-nat-topo.png)
 ## 3.2 Prepare
-Given a fresh installation, some configurations need to be done to prepare the demo. The config utility is from [here](https://github.com/tonyliu0592/contrail-config).
+Given a fresh installation, some configurations need to be done to prepare the demo. The config utility is from [here](https://github.com/tonyliu0592/orch).
 * As 1.3.3, update openstack-nova-compute on compute node.
+* Get code from GitHub.
+```
+# git clone https://github.com/tonyliu0592/orch.git
+# cd orch
+# git clone https://github.com/leopoul/ncclient.git
+# mv ncclinet.git ncclient.git
+# mv ncclient.git/ncclient ./
+# rm -fr ncclient.git
+```
+Check script config to confirm default settings.
 * VN "management" and "public" with public address in administration tenant
 ```
 # config --tenant admin add ipam ipam-default
