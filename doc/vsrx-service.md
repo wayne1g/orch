@@ -1,11 +1,9 @@
 
 # 1. vSRX and OpenStack
 vSRX (Firefly Perimeter) is the virtualization of SRX service gateway provided by Juniper. This is the product page.
-
 http://www.juniper.net/us/en/products-services/security/firefly-perimeter/#overview
 
 The KVM-based vSRX is packed in JVA container. It's available on this link for download.
-
 http://www.juniper.net/support/downloads/?p=firefly#sw
 
 ## 1.1 Add vSRX image
@@ -55,6 +53,7 @@ vSRX can be launched by Contrail service monitor as a service in service chain.
 * An access virtual network is created in each tenant and extened for customer access by gateway.
 * A public virtual network is created in admin tenant to provide public access for all customers. It's extended to public by gateway.
 * A  management virtual network is created in admin tenant for managing all service instances. It's also extended to physical network by gateway, because the orchestration program runs on physical network.
+
 ## 3.2 Prepare
 Given a fresh installation, some configurations need to be done to prepare the demo. Some utilities are required from this repository.
 https://github.com/tonyliu0592/orch
