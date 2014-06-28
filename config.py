@@ -1411,8 +1411,8 @@ class ConfigVmInterface():
 
     def ref_irt_show(self, obj):
         print '[R] Interface route tables:'
-        refs = obj.get_interface_route_table_refs()
-        if refs:
+        list = obj.get_interface_route_table_refs()
+        if list:
             for item in list:
                 print '    %s' %(item['to'][2])
 
