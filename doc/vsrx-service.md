@@ -221,4 +221,12 @@ vsrx --tenant acme
 ```
 At the end, customer will have NAT service in the cloud and be able to access internet.
 
+In this demo, lo0.100 in VRF access-acme is as the user host, lo0.184 in VRF public is as the internet server. ICMP traffic from user host to internet server shows this demo works as expected.
+```
+gateway> ping routing-instance access-acme 1.1.18.4    
+PING 1.1.18.4 (1.1.18.4): 56 data bytes
+64 bytes from 1.1.18.4: icmp_seq=3 ttl=63 time=7.870 ms
+64 bytes from 1.1.18.4: icmp_seq=4 ttl=63 time=14.991 ms
+```
+
 
