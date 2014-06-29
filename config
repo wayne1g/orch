@@ -1,15 +1,22 @@
 #!/bin/env python
 
+import sys
 from config import *
 
-DEFAULT_API_SERVER = '10.84.18.2'
-DEFAULT_USERNAME = 'admin'
-DEFAULT_PASSWORD = 'contrail123'
-DEFAULT_TENANT = 'demo'
-DEFAULT_REGION = 'RegionOne'
+default_args = [
+    ('--username', 'admin'),
+    ('--password', 'contrail123'),
+    ('--region', 'RegionOne'),
+    ('--tenant', 'admin'),
+    ('--api-server', '127.0.0.1')]
 
 if __name__ == '__main__':
-    ConfigShell().main(api_server = DEFAULT_API_SERVER,
-            username = DEFAULT_USERNAME, password = DEFAULT_PASSWORD,
-            tenant_name = DEFAULT_TENANT, region_name = DEFAULT_REGION)
+    for arg in default_args:
+        if not arg[0] in sys.argv:
+            sys.argv.insert(1, arg[0])
+            sys.argv.insert(2, arg[1])
+    shell = ConfigShell()
+    args = shell.parse()
+    shell.clients(args)
+    shell.execute(args)
 
