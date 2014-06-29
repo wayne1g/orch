@@ -217,7 +217,7 @@ Once the cloud is prepared, running utility `vsrx` will do the followings.
 * Enable NETCONF service on vSRX.
 * Provisioning vSRX for NAT service.
 ```
-vsrx-launch --tenant acme
+vsrx --tenant acme
 ```
 At the end, customer will have NAT service in the cloud and be able to access internet.
 
