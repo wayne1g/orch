@@ -43,7 +43,9 @@ The root password `rootpw` is the hashed string of 'passWD'.
 # service openstack-nova-compute restart
 ```
 
-This update will add new entry into /var/lib/nova/instances/<uuid>/libvirt.xml for libvirt to create the VM. There is a script in vSRX to read this sysinfo and apply it to configuration. This is the automatic initial provistioning without manual configuration. Then the further provisioning can be done.
+This update will add new entry into /var/lib/nova/instances/<uuid>/libvirt.xml for libvirt to create the VM. There is a script in vSRX to read this sysinfo and apply it to configuration. This is the automatic initial provistioning without manual configuration.
+
+With this initial configuration, network, SSH and web based management are enabled. To provisition vSRX by NETCONF, two more configurations are required, [ system services netconf ssh ] and [ security zones security-zone trust interfaces ge-0/0/0.0 host-inbound-traffic system-services all ]. They can be configured by SSH.
 # 2. vSRX and Contrail
 vSRX can be launched by Contrail service monitor as a service in service chain.
 # 3. Demo of NAT
@@ -212,9 +214,10 @@ Once the cloud is prepared, running utility `vsrx` will do the followings.
 * Launch vSRX service instance based on pre-defined service template.
 * Attach the management, left and right interfaces of vSRX service instance on management, access and public virtual networks respectively.
 * Since the service instance is across tenants, service policy doesn't work here. Static interface route needs to be added in access virtual network to steer traffic to vSRX.
+* Enable NETCONF service on vSRX.
 * Provisioning vSRX for NAT service.
 ```
-vsrx-launch --
+vsrx-launch --tenant acme
 ```
 At the end, customer will have NAT service in the cloud and be able to access internet.
 
