@@ -68,7 +68,7 @@ class Vsrx():
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         while True:
             try:
-                ssh.connect('10.84.53.140', username = 'root',
+                ssh.connect(self.mgmt_addr, username = 'root',
                         password = 'passWD')
                 break
             except:
@@ -80,7 +80,7 @@ class Vsrx():
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect('10.84.53.140', username = 'root', password = 'passWD')
+        ssh.connect(self.mgmt_addr, username = 'root', password = 'passWD')
         ssh.exec_command('cli -c "configure;set system services netconf ssh;set security zones security-zone trust interfaces ge-0/0/0.0 host-inbound-traffic system-services all;commit"')
         time.sleep(10)
         ssh.close()
@@ -90,7 +90,7 @@ class Vsrx():
 
         from ncclient import manager as netconf
 
-        nc_client = netconf.connect(host = '10.84.53.140', port = 830,
+        nc_client = netconf.connect(host = self.mgmt_addr, port = 830,
                 username = 'root', password = 'passWD', hostkey_verify = False,
                 device_params={'name':'junos'})
 
