@@ -1,5 +1,6 @@
 
 import os
+import sys
 import time
 import uuid
 import argparse
@@ -1620,7 +1621,9 @@ class ConfigGlobalVrouter():
 class ConfigShell():
 
     def __init__(self):
-        pass
+        self.vnc = None
+        self.nova = None
+        self.tenant = None
 
     def env(self, *args, **kwargs):
         for arg in args:
@@ -1635,8 +1638,7 @@ class ConfigShell():
         else:
             self.parser.print_help()
 
-    def main(self, api_server = None, username = None, password = None,
-            tenant_name = None, region_name = 'RegionOne'):
+    def parse(self):
         ipam = ConfigIpam()
         vdns = ConfigVirtualDns()
         policy = ConfigPolicy()
@@ -1653,16 +1655,11 @@ class ConfigShell():
         fip_pool = ConfigFloatingIpPool()
 
         self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('--api-server', default = api_server,
-                help = 'API server address')
-        self.parser.add_argument('--username', default = username,
-                help = 'User name')
-        self.parser.add_argument('--password', default = password,
-                help = 'Password')
-        self.parser.add_argument('--tenant', default = tenant_name,
-                help = 'Tenant name')
-        self.parser.add_argument('--region', default = region_name,
-                help = 'Region name')
+        self.parser.add_argument('--api-server', help = 'API server address')
+        self.parser.add_argument('--username', help = 'User name')
+        self.parser.add_argument('--password', help = 'Password')
+        self.parser.add_argument('--tenant', help = 'Tenant name')
+        self.parser.add_argument('--region', help = 'Region name')
         cmd_list = ['add', 'set', 'show', 'delete', 'help']
         self.parser.add_argument('cmd', choices = cmd_list)
 
@@ -1857,17 +1854,21 @@ class ConfigShell():
                 help = 'Fabric address and port')
 
         args = self.parser.parse_args()
+        return args
 
-        vnc = vnc_api.VncApi(username = args.username,
+    def clients(self, args):
+        self.vnc = vnc_api.VncApi(username = args.username,
                 password = args.password, tenant_name = args.tenant,
                 api_server_host = args.api_server)
-        nova = novaclient.v1_1.client.Client(username = args.username,
+        self.nova = novaclient.v1_1.client.Client(username = args.username,
                 api_key = args.password, project_id = args.tenant,
                 region_name = args.region,
                 auth_url = 'http://%s:35357/v2.0' %(args.api_server))
-        tenant = vnc.project_read(fq_name = ['default-domain', args.tenant])
-        args.obj.handler_set(vnc, nova, tenant)
+        self.tenant = self.vnc.project_read(
+                fq_name = ['default-domain', args.tenant])
+        args.obj.handler_set(self.vnc, self.nova, self.tenant)
 
+    def execute(self, args):
         if args.cmd == 'add':
             args.obj.add(args)
         elif args.cmd == 'set':
@@ -1883,5 +1884,8 @@ class ConfigShell():
             return
 
 if __name__ == '__main__':
-    ConfigShell().main()
+    shell = ConfigShell()
+    args = shell.parse()
+    shell.clients(args)
+    shell.execute(args)
 
