@@ -1,0 +1,66 @@
+#!/bin/env python
+
+import time
+from config import *
+
+default_args = [
+    ('--username', 'admin'),
+    ('--password', 'contrail123'),
+    ('--region', 'RegionOne'),
+    ('--tenant', 'admin'),
+    ('--api-server', '127.0.0.1')]
+
+class Vsrx():
+    def __init__(self):
+        self.argv_orig = sys.argv
+
+    def argv_set(self, cmd):
+        args = cmd.split()
+        sys.argv = self.argv_orig + args
+        for arg in default_args:
+            if not arg[0] in sys.argv:
+                sys.argv.insert(1, arg[0])
+                sys.argv.insert(2, arg[1])
+
+    def service_instance_launch(self):
+        print 'Launch service instance.'
+        cmd = 'add service-instance vsrx-nat --template vsrx-nat ' + \
+                '--management-network admin:management ' + \
+                '--left-network access ' + \
+                '--right-network admin:public'
+
+        self.argv_set(cmd)
+        config = ConfigShell()
+        args = config.parse()
+        config.clients(args)
+        config.execute(args)
+
+        print 'Waiting ...'
+        timeout = 12
+        while timeout:
+            time.sleep(3)
+            vm = config.nova.servers.find(name = 'vsrx-nat_1')
+            if vm.status != 'BUILD':
+                print 'VM %s is %s' %(vm.name, vm.status)
+                break
+            timeout -= 1
+
+        print 'Post-launch configuration.'
+        cmd_list = [
+            'delete vm-interface vsrx-nat_1:management --security-group default',
+            'delete vm-interface vsrx-nat_1:access --security-group default',
+            'delete vm-interface vsrx-nat_1:public --security-group default',
+            'add interface-route-table irt --route 0.0.0.0/0',
+            'add vm-interface vsrx-nat_1:access --interface-route-table irt']
+        for cmd in cmd_list:
+            self.argv_set(cmd)
+            config = ConfigShell()
+            args = config.parse()
+            config.clients(args)
+            config.execute(args)
+
+
+if __name__ == '__main__':
+    vsrx = Vsrx()
+    vsrx.service_instance_launch()
+
