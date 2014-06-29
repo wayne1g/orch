@@ -1,6 +1,7 @@
 #!/bin/env python
 
 import time
+import paramiko
 from config import *
 
 default_args = [
@@ -61,10 +62,21 @@ class Vsrx():
             config.clients(args)
             config.execute(args)
 
+    def service_boot(self):
+        print 'Waiting for Junos boots up...'
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        while True:
+            try:
+                ssh.connect('10.84.53.140', username = 'root',
+                        password = 'passWD')
+                break
+            except:
+                continue
+        ssh.close()
+
     def service_netconf_enable(self):
         print 'Enable NETCONF service.'
-
-        import paramiko
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -96,6 +108,7 @@ class Vsrx():
 if __name__ == '__main__':
     vsrx = Vsrx()
     vsrx.service_launch()
+    vsrx.service_boot()
     vsrx.service_netconf_enable()
     vsrx.service_provisioning()
 
