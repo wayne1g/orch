@@ -13,6 +13,7 @@ default_args = [
 class Vsrx():
     def __init__(self):
         self.argv_orig = sys.argv
+        self.mgmt_addr = None
 
     def argv_set(self, cmd):
         args = cmd.split()
@@ -22,7 +23,7 @@ class Vsrx():
                 sys.argv.insert(1, arg[0])
                 sys.argv.insert(2, arg[1])
 
-    def service_instance_launch(self):
+    def service_launch(self):
         print 'Launch service instance.'
         cmd = 'add service-instance vsrx-nat --template vsrx-nat ' + \
                 '--management-network admin:management ' + \
@@ -44,6 +45,7 @@ class Vsrx():
                 print 'VM %s is %s' %(vm.name, vm.status)
                 break
             timeout -= 1
+        self.mgmt_addr = vm.addresses['management'][0]['addr']
 
         print 'Post-launch configuration.'
         cmd_list = [
@@ -59,8 +61,41 @@ class Vsrx():
             config.clients(args)
             config.execute(args)
 
+    def service_netconf_enable(self):
+        print 'Enable NETCONF service.'
+
+        import paramiko
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect('10.84.53.140', username = 'root', password = 'passWD')
+        ssh.exec_command('cli -c "configure;set system services netconf ssh;set security zones security-zone trust interfaces ge-0/0/0.0 host-inbound-traffic system-services all;commit"')
+        time.sleep(10)
+        ssh.close()
+
+    def service_provisioning(self):
+        print 'Provisioning service.'
+
+        from ncclient import manager as netconf
+
+        nc_client = netconf.connect(host = '10.84.53.140', port = 830,
+                username = 'root', password = 'passWD', hostkey_verify = False,
+                device_params={'name':'junos'})
+
+        list = []
+        conf = open('vsrx-nat.conf', 'r')
+        for line in conf:
+            line.rstrip('\n')
+            list.append(line)
+        conf.close()
+        nc_client.load_configuration(action = 'set', config = list)
+        nc_client.commit()
+        nc_client.close_session()
+
 
 if __name__ == '__main__':
     vsrx = Vsrx()
-    vsrx.service_instance_launch()
+    vsrx.service_launch()
+    vsrx.service_netconf_enable()
+    vsrx.service_provisioning()
 
