@@ -939,7 +939,7 @@ class ConfigServiceTemplate():
         obj = vnc_api.ServiceTemplate(name = args.name)
         properties = vnc_api.ServiceTemplateType(service_mode = args.mode,
                 service_type = args.type, image_name = args.image,
-                flavor = args.flavor)
+                flavor = args.flavor, ordered_interfaces = True)
         if args.scale:
             properties.set_service_scaling(args.scale)
             for item in args.interface_type:
@@ -957,7 +957,8 @@ class ConfigServiceTemplate():
         else:
             for item in args.interface_type:
                 type = vnc_api.ServiceTemplateInterfaceType(
-                        service_interface_type = item)
+                        service_interface_type = item,
+                        static_route_enable = True)
                 properties.add_interface_type(type)
         obj.set_service_template_properties(properties)
         try:
@@ -1014,45 +1015,51 @@ class ConfigServiceInstance():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
+    def net_set(self, arg):
+        if len(arg.split(':')) > 1:
+            net = 'default-domain:%s:%s' %(arg.split(':')[0],
+                    arg.split(':')[1])
+        else:
+            net = 'default-domain:%s:%s' %(self.tenant.name, arg)
+        return net
+
     def add(self, args):
         obj = vnc_api.ServiceInstance(name = args.name,
                 parent_obj = self.tenant)
         properties = vnc_api.ServiceInstanceType()
+
         if args.management_network:
-            if len(args.management_network.split(':')) > 1:
-                net = 'default-domain:%s:%s' \
-                        %(args.management_network.split(':')[0],
-                        args.management_network.split(':')[1])
-            else:
-                net = 'default-domain:%s:%s' %(self.tenant.name,
-                        args.management_network)
+            net = self.net_set(args.management_network)
             properties.set_management_virtual_network(net)
             properties.add_interface_list(vnc_api.ServiceInstanceInterfaceType(
                     virtual_network = net))
+
         if args.left_network:
-            if len(args.left_network.split(':')) > 1:
-                net = 'default-domain:%s:%s' %(args.left_network.split(':')[0],
-                        args.left_network.split(':')[1])
-            else:
-                net = 'default-domain:%s:%s' %(self.tenant.name,
-                        args.left_network)
+            net = self.net_set(args.left_network)
         else:
             net = ''
+        interface = vnc_api.ServiceInstanceInterfaceType(virtual_network = net)
+        if args.left_route:
+            route = vnc_api.RouteType(prefix = args.left_route)
+            route_table = vnc_api.RouteTableType()
+            route_table.add_route(route)
+            interface.set_static_routes(route_table)
         properties.set_left_virtual_network(net)
-        properties.add_interface_list(vnc_api.ServiceInstanceInterfaceType(
-                virtual_network = net))
+        properties.add_interface_list(interface)
+
         if args.right_network:
-            if len(args.right_network.split(':')) > 1:
-                net = 'default-domain:%s:%s' %(args.right_network.split(':')[0],
-                        args.right_network.split(':')[1])
-            else:
-                net = 'default-domain:%s:%s' %(self.tenant.name,
-                        args.right_network)
+            net = self.net_set(args.right_network)
         else:
             net = ''
+        interface = vnc_api.ServiceInstanceInterfaceType(virtual_network = net)
+        if args.left_route:
+            route = vnc_api.RouteType(prefix = args.left_route)
+            route_table = vnc_api.RouteTableType()
+            route_table.add_route(route)
+            interface.set_static_routes(route_table)
         properties.set_right_virtual_network(net)
-        properties.add_interface_list(vnc_api.ServiceInstanceInterfaceType(
-                virtual_network = net))
+        properties.add_interface_list(interface)
+
         if args.scale_max:
             scale = vnc_api.ServiceScaleOutType(
                     max_instances = int(args.scale_max),
@@ -1836,9 +1843,15 @@ class ConfigShell():
         sub_parser.add_argument('--left-network',
                 metavar = '<left network>',
                 help = 'Left network')
+        sub_parser.add_argument('--left-route',
+                metavar = '<prefix/length>',
+                help = 'Static route to left interface')
         sub_parser.add_argument('--right-network',
                 metavar = '<right network>',
                 help = 'Right network')
+        sub_parser.add_argument('--right-route',
+                metavar = '<prefix/length>',
+                help = 'Static route to right interface')
         sub_parser.add_argument('--scale-max',
                 metavar = '<max number of instances>',
                 help = 'The max number of instances')
