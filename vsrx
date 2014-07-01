@@ -29,6 +29,7 @@ class Vsrx():
         cmd = 'add service-instance vsrx-nat --template vsrx-nat ' + \
                 '--management-network admin:management ' + \
                 '--left-network access ' + \
+                '--left-route 0.0.0.0/0 ' + \
                 '--right-network admin:public'
 
         self.argv_set(cmd)
@@ -52,9 +53,7 @@ class Vsrx():
         cmd_list = [
             'delete vm-interface vsrx-nat_1:management --security-group default',
             'delete vm-interface vsrx-nat_1:access --security-group default',
-            'delete vm-interface vsrx-nat_1:public --security-group default',
-            'add interface-route-table irt --route 0.0.0.0/0',
-            'add vm-interface vsrx-nat_1:access --interface-route-table irt']
+            'delete vm-interface vsrx-nat_1:public --security-group default']
         for cmd in cmd_list:
             self.argv_set(cmd)
             config = ConfigShell()
