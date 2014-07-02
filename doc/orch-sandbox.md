@@ -35,11 +35,11 @@ export OS_AUTH_URL=http://127.0.0.1:35357/v2.0
 # OpenStack Compute Nova API
 ID=$(keystone service-list | awk '/\ nova\ / {print $2}')
 
-PUBLIC="http://169.254.10.10:\$(compute_port)s/v1.1/\$(tenant_id)s"
+PUBLIC="http://172.18.64.12:\$(compute_port)s/v1.1/\$(tenant_id)s"
 ADMIN=$PUBLIC
 INTERNAL=$PUBLIC
 
-keystone endpoint-create --region RegionLinkLocal --service_id $ID --publicurl $PUBLIC --adminurl $ADMIN --internalurl $INTERNAL
+keystone endpoint-create --region RegionAdmin --service_id $ID --publicurl $PUBLIC --adminurl $ADMIN --internalurl $INTERNAL
 
 ```
 
