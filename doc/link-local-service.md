@@ -3,7 +3,7 @@ Contrail supports link local service on link local address 169.254.0.0/16. The i
 ## Orchestration on VM
 Link local service allows VM to access physical devices. With configuration, VM will have access to API servers on physical node to orchestrate system. This is normally for the case of tenant self-management.
 
-Here are steps to run (configuration utility)[https://github.com/tonyliu0592/orch] on VM.
+Here are steps to run [configuration utility](https://github.com/tonyliu0592/orch) on VM.
 ####1. Download configuration utiliy on API server (configuration node)
 Git package is not installed as a part of the integration of Contrail and OpenStack. User can install git on API server and clone the utility, or clone it somewhere else and copy to API server.
 ```
@@ -46,7 +46,7 @@ keystone endpoint-create --region RegionLinkLocal --service_id $ID --publicurl $
 
 ```
 ####5. Configure link local service
-Contrail link local service can be configured on Contrail Web UI, or by this (configuration utility)[https://github.com/tonyliu0592/orch].
+Contrail link local service can be configured on Contrail Web UI, or by this [configuration utility](https://github.com/tonyliu0592/orch).
 ```
 # config add link-local "SSH" --link-local-address 169.254.10.10:22 --fabric-address <API server>:35357
 # config add link-local "Keystone Admin" --link-local-address 169.254.10.10:35357 --fabric-address <API server>:35357
