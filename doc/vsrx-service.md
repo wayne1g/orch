@@ -1,4 +1,8 @@
-
+# Goal
+To build an integrated solution for end user.
+* Create a service with vSRX in the service chain.
+* Base on the official release of vSRX, no manual configuration is required.
+* One single step for end user to create and provisioning the service.
 # 1. vSRX and OpenStack
 vSRX (Firefly Perimeter) is the virtualization of SRX service gateway provided by Juniper. This is the product page.
 http://www.juniper.net/us/en/products-services/security/firefly-perimeter/#overview
