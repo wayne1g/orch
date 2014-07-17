@@ -54,7 +54,7 @@ With this initial configuration, network, SSH and web based management are enabl
 vSRX can be launched by Contrail service monitor as a service in service chain.
 # 3. Demo of NAT
 ## 3.1 Overview
-![Demo topo](vsrx-nat-topo.png)
+![Demo topo](vsrx-nat-figure-1.png)
 * A tenant space is allocated in the cloud for each customer.
 * An access virtual network is created in each tenant and extened for customer access by gateway.
 * A public virtual network is created in admin tenant to provide public access for all customers. It's extended to public by gateway.
