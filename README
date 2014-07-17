@@ -1,5 +1,5 @@
 
-[vSRX as service](doc/vsrx-service.md)
+[vSRX as a service](doc/vsrx-service.md)
 
 [Link Local Service](doc/link-local-service.md)
 
