@@ -16,7 +16,8 @@ if __name__ == '__main__':
             sys.argv.insert(1, arg[0])
             sys.argv.insert(2, arg[1])
     shell = ConfigShell()
-    args = shell.parse()
-    shell.clients(args)
+    parser = shell.parser_init()
+    args = parser.parse_args()
+    shell.clients_init(args)
     shell.execute(args)
 

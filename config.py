@@ -12,7 +12,7 @@ class ConfigVirtualDns():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -74,7 +74,7 @@ class ConfigIpam():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -221,7 +221,7 @@ class ConfigPolicy():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -423,7 +423,7 @@ class ConfigSecurityGroup():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -590,7 +590,7 @@ class ConfigNetwork():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -784,7 +784,7 @@ class ConfigFloatingIpPool():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -858,7 +858,7 @@ class ConfigFloatingIpPool():
             print 'ERROR: Parent virtual network is not specified!'
             return
         net = ConfigNetwork()
-        net.handler_set(self.vnc, None, self.tenant)
+        net.handler_init(self.vnc, None, self.tenant)
         net_obj = net.obj_get(args.network)
         if not net_obj:
             print 'ERROR: Network %s is not found!' %(args.network)
@@ -897,7 +897,7 @@ class ConfigServiceTemplate():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -983,7 +983,7 @@ class ConfigServiceInstance():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -1097,7 +1097,7 @@ class ConfigImage():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.nova = nova
 
     def obj_list(self):
@@ -1138,7 +1138,7 @@ class ConfigFlavor():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.nova = nova
 
     def obj_list(self):
@@ -1179,7 +1179,7 @@ class ConfigVirtualMachine():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.nova = nova
         self.tenant = tenant
@@ -1272,7 +1272,7 @@ class ConfigInterfaceRouteTable():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -1364,7 +1364,7 @@ class ConfigVmInterface():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
         self.nova = nova
@@ -1488,7 +1488,7 @@ class ConfigVmInterface():
 
     def fip_add(self, if_obj, args):
         pool = ConfigFloatingIpPool()
-        pool.handler_set(self.vnc, None, self.tenant)
+        pool.handler_init(self.vnc, None, self.tenant)
         pool_obj = pool.obj_get(args.floating_ip_pool)
         if not pool_obj:
             print 'ERROR: Floating IP pool %s is not found!' \
@@ -1574,7 +1574,7 @@ class ConfigGlobalVrouter():
     def __init__(self):
         pass
 
-    def handler_set(self, vnc, nova, tenant):
+    def handler_init(self, vnc, nova, tenant):
         self.vnc = vnc
         self.tenant = tenant
 
@@ -1645,7 +1645,7 @@ class ConfigShell():
         else:
             self.parser.print_help()
 
-    def parse(self):
+    def parser_init(self):
         ipam = ConfigIpam()
         vdns = ConfigVirtualDns()
         policy = ConfigPolicy()
@@ -1865,11 +1865,13 @@ class ConfigShell():
         sub_parser.add_argument('--fabric-address',
                 metavar = '<fabric address>:<fabric port>',
                 help = 'Fabric address and port')
+        return self.parser
 
+    def parse(self):
         args = self.parser.parse_args()
         return args
 
-    def clients(self, args):
+    def clients_init(self, args):
         self.vnc = vnc_api.VncApi(username = args.username,
                 password = args.password, tenant_name = args.tenant,
                 api_server_host = args.api_server)
@@ -1879,7 +1881,7 @@ class ConfigShell():
                 auth_url = 'http://%s:35357/v2.0' %(args.api_server))
         self.tenant = self.vnc.project_read(
                 fq_name = ['default-domain', args.tenant])
-        args.obj.handler_set(self.vnc, self.nova, self.tenant)
+        args.obj.handler_init(self.vnc, self.nova, self.tenant)
 
     def execute(self, args):
         if args.cmd == 'add':
@@ -1898,7 +1900,8 @@ class ConfigShell():
 
 if __name__ == '__main__':
     shell = ConfigShell()
-    args = shell.parse()
-    shell.clients(args)
+    parser = shell.parser_init()
+    args = parser.parse_args()
+    shell.clients_init(args)
     shell.execute(args)
 
