@@ -60,7 +60,7 @@ vSRX can be launched by Contrail service monitor as a service in service chain.
 * A public virtual network is created in admin tenant to provide public access for all customers. It's extended to public by gateway.
 * A  management virtual network is created in admin tenant for managing all service instances. It's also extended to physical network by gateway, because the orchestration program runs on physical network.
 
-## 3.2 Prepare
+## 3.2 Preparations
 Given a fresh installation, some configurations need to be done to prepare the demo. Some utilities are required from this repository.
 https://github.com/tonyliu0592/orch
 * As described in 1.3.3, nova needs to be updated on all compute nodes.
