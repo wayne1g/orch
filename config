@@ -3,7 +3,7 @@
 import sys
 from config import *
 
-default_args = [
+default_client_args = [
     ('--username', 'admin'),
     ('--password', 'contrail123'),
     ('--region', 'RegionOne'),
@@ -11,13 +11,9 @@ default_args = [
     ('--api-server', '127.0.0.1')]
 
 if __name__ == '__main__':
-    for arg in default_args:
+    for arg in default_client_args:
         if not arg[0] in sys.argv:
             sys.argv.insert(1, arg[0])
             sys.argv.insert(2, arg[1])
-    shell = ConfigShell()
-    parser = shell.parser_init()
-    args = parser.parse_args()
-    shell.clients_init(args)
-    shell.execute(args)
+    ConfigShell().main()
 
