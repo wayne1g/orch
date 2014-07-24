@@ -9,12 +9,10 @@ from vnc_api import vnc_api
 
 
 class ConfigVirtualDns():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.nova = client.nova
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.virtual_DNSs_list()['virtual-DNSs']
@@ -71,12 +69,9 @@ class ConfigVirtualDns():
 
 
 class ConfigIpam():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.network_ipams_list()['network-ipams']
@@ -218,12 +213,9 @@ class ConfigIpam():
 
 
 class ConfigPolicy():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.network_policys_list()['network-policys']
@@ -420,12 +412,9 @@ class ConfigPolicy():
 
 
 class ConfigSecurityGroup():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.security_groups_list()['security-groups']
@@ -587,12 +576,9 @@ class ConfigSecurityGroup():
 
 
 class ConfigNetwork():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.virtual_networks_list()['virtual-networks']
@@ -631,9 +617,7 @@ class ConfigNetwork():
         ipam_list = obj.get_network_ipam_refs()
         if not ipam_list:
             return
-        name_ref_list = []
         for item in ipam_list:
-            name_ref_list.append((item['to'][2], item))
             print '    %s' %(item['to'][2])
             subnet_list = item['attr'].get_ipam_subnets()
             for subnet in subnet_list:
@@ -647,12 +631,18 @@ class ConfigNetwork():
         policy_list = obj.get_network_policy_refs()
         if not policy_list:
             return
-        name_ref_list = []
         for item in policy_list:
-            name_ref_list.append((item['to'][2], item))
             print '    %s (%d.%d)' %(item['to'][2],
                     item['attr'].get_sequence().get_major(),
                     item['attr'].get_sequence().get_minor())
+
+    def ref_route_table_show(self, obj):
+        print '[R] Route Tables:'
+        rt_list = obj.get_route_table_refs()
+        if not rt_list:
+            return
+        for item in rt_list:
+            print '    %s' %(item['to'][2])
 
     def obj_show(self, obj):
         print 'Virtual Network'
@@ -662,6 +652,7 @@ class ConfigNetwork():
         self.child_floating_ip_pool_show(obj)
         self.ref_ipam_show(obj)
         self.ref_policy_show(obj)
+        self.ref_route_table_show(obj)
 
     def show(self, args):
         if args.name:
@@ -733,6 +724,24 @@ class ConfigNetwork():
             return
         rt_list.delete_route_target('target:%s' %(args.route_target))
 
+    def route_table_add(self, obj, args):
+        try:
+            rt_obj = self.vnc.route_table_read(fq_name = ['default-domain',
+                    self.tenant.name, args.route_table])
+        except Exception as e:
+            print 'ERROR: %s' %(str(e))
+            return
+        obj.add_route_table(ref_obj = rt_obj)
+
+    def route_table_del(self, obj, args):
+        try:
+            rt_obj = self.vnc.route_table_read(fq_name = ['default-domain',
+                    self.tenant.name, args.route_table])
+        except Exception as e:
+            print 'ERROR: %s' %(str(e))
+            return
+        obj.del_route_table(ref_obj = rt_obj)
+
     def add(self, args):
         create = False
         obj = self.obj_get(args.name)
@@ -746,6 +755,8 @@ class ConfigNetwork():
             self.policy_add(obj, args)
         if args.route_target:
             self.route_target_add(obj, args)
+        if args.route_table:
+            self.route_table_add(obj, args)
         if create:
             try:
                 self.vnc.virtual_network_create(obj)
@@ -771,6 +782,9 @@ class ConfigNetwork():
         if args.route_target:
             self.route_target_del(obj, args)
             update = True
+        if args.route_table:
+            self.route_table_del(obj, args)
+            update = True
         if update:
             self.vnc.virtual_network_update(obj)
         else:
@@ -781,12 +795,9 @@ class ConfigNetwork():
 
 
 class ConfigFloatingIpPool():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.floating_ip_pools_list()['floating-ip-pools']
@@ -894,12 +905,9 @@ class ConfigFloatingIpPool():
 
 
 class ConfigServiceTemplate():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.service_templates_list()['service-templates']
@@ -980,12 +988,9 @@ class ConfigServiceTemplate():
 
 
 class ConfigServiceInstance():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.service_instances_list()['service-instances']
@@ -1026,7 +1031,8 @@ class ConfigServiceInstance():
     def add(self, args):
         obj = vnc_api.ServiceInstance(name = args.name,
                 parent_obj = self.tenant)
-        properties = vnc_api.ServiceInstanceType()
+        properties = vnc_api.ServiceInstanceType(
+                auto_policy = args.auto_policy)
 
         if args.management_network:
             net = self.net_set(args.management_network)
@@ -1094,11 +1100,8 @@ class ConfigServiceInstance():
 
 
 class ConfigImage():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.nova = nova
+    def __init__(self, client):
+        self.nova = client.nova
 
     def obj_list(self):
         list = self.nova.images.list()
@@ -1135,11 +1138,8 @@ class ConfigImage():
 
 
 class ConfigFlavor():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.nova = nova
+    def __init__(self, client):
+        self.nova = client.nova
 
     def obj_list(self):
         list = self.nova.flavors.list()
@@ -1176,13 +1176,10 @@ class ConfigFlavor():
 
 
 class ConfigVirtualMachine():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.nova = nova
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.nova = client.nova
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.nova.servers.list()
@@ -1268,13 +1265,101 @@ class ConfigVirtualMachine():
         self.nova.servers.delete(obj.id)
 
 
-class ConfigInterfaceRouteTable():
-    def __init__(self):
+class ConfigRouteTable():
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
+
+    def obj_list(self):
+        list = self.vnc.route_tables_list()['route-tables']
+        return list
+
+    def obj_get(self, name):
+        for item in self.obj_list():
+            if (item['fq_name'][1] == self.tenant.name) and \
+                    (item['fq_name'][2] == name):
+                return self.vnc.route_table_read(id = item['uuid'])
+
+    def obj_show(self, obj):
+        print 'Route Table'
+        print 'Name: %s' %(obj.get_fq_name())      
+        print 'UUID: %s' %(obj.uuid)
+        routes = obj.get_routes()
+        if not routes:
+            return
+        for item in routes.get_route():
+            print '  %s next-hop %s' %(item.get_prefix(), item.get_next_hop())
+
+    def show(self, args):
+        if args.name:
+            obj = self.obj_get(args.name)
+            if not obj:
+                print 'ERROR: Object %s is not found!' %(args.name)
+                return
+            self.obj_show(obj)
+        else:
+            list = self.obj_list()
+            for item in list:
+                if (item['fq_name'][1] == self.tenant.name):
+                    print '    %s' %(item['fq_name'][2])
+
+    def route_add(self, obj, route):
+        routes = obj.get_routes()
+        if not routes:
+            routes = vnc_api.RouteTableType()
+            obj.set_routes(routes)
+        prefix = route.split(':')[0]
+        nh = 'default-domain:%s:%s' %(self.tenant.name, route.split(':')[1])
+        routes.add_route(vnc_api.RouteType(prefix = prefix, next_hop = nh))
+
+    def route_del(self, obj, prefix):
+        routes = obj.get_routes()
+        if not routes:
+            return
+        for item in routes.get_route():
+            if (item.get_prefix() == prefix):
+                routes.delete_route(item)
+
+    def add(self, args):
+        create = False
+        obj = self.obj_get(args.name)
+        if not obj:
+            obj = vnc_api.RouteTable(name = args.name,
+                    parent_obj = self.tenant)
+            create = True
+        if args.route:
+            for item in args.route:
+                self.route_add(obj, item)
+        if create:
+            try:
+                self.vnc.route_table_create(obj)
+            except Exception as e:
+                print 'ERROR: %s' %(str(e))
+        else:
+            self.vnc.route_table_update(obj)
+
+    def set(self, args):
         pass
 
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def delete(self, args):
+        obj = self.obj_get(args.name)
+        if not obj:
+            print 'ERROR: Object %s is not found!' %(args.name)
+        if args.route:
+            for item in args.route:
+                self.route_del(obj, item)
+            self.vnc.route_table_update(obj)
+        else:
+            try:
+                self.vnc.table_delete(id = obj.uuid)
+            except Exception as e:
+                print 'ERROR: %s' %(str(e))
+
+
+class ConfigInterfaceRouteTable():
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.interface_route_tables_list()['interface-route-tables']
@@ -1361,13 +1446,10 @@ class ConfigInterfaceRouteTable():
 
 
 class ConfigVmInterface():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
-        self.nova = nova
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
+        self.nova = client.nova
 
     def obj_list(self):
         list = []
@@ -1571,12 +1653,9 @@ class ConfigVmInterface():
 
 
 class ConfigGlobalVrouter():
-    def __init__(self):
-        pass
-
-    def handler_init(self, vnc, nova, tenant):
-        self.vnc = vnc
-        self.tenant = tenant
+    def __init__(self, client):
+        self.vnc = client.vnc
+        self.tenant = client.tenant
 
     def obj_list(self):
         list = self.vnc.interface_route_tables_list()['interface-route-tables']
@@ -1624,13 +1703,22 @@ class ConfigGlobalVrouter():
                 break
         self.vnc.global_vrouter_config_update(obj)
 
+class ConfigClient():
+    def __init__(self, args):
+        self.vnc = vnc_api.VncApi(username = args.username,
+                password = args.password, tenant_name = args.tenant,
+                api_server_host = args.api_server)
+        self.nova = novaclient.v1_1.client.Client(username = args.username,
+                api_key = args.password, project_id = args.tenant,
+                region_name = args.region,
+                auth_url = 'http://%s:35357/v2.0' %(args.api_server))
+        self.tenant = self.vnc.project_read(
+                fq_name = ['default-domain', args.tenant])
 
 class ConfigShell():
 
     def __init__(self):
-        self.vnc = None
-        self.nova = None
-        self.tenant = None
+        self.parser_init()
 
     def env(self, *args, **kwargs):
         for arg in args:
@@ -1646,35 +1734,22 @@ class ConfigShell():
             self.parser.print_help()
 
     def parser_init(self):
-        ipam = ConfigIpam()
-        vdns = ConfigVirtualDns()
-        policy = ConfigPolicy()
-        sg = ConfigSecurityGroup()
-        net = ConfigNetwork()
-        irt = ConfigInterfaceRouteTable()
-        vm_if = ConfigVmInterface()
-        vm = ConfigVirtualMachine()
-        image = ConfigImage()
-        flavor = ConfigFlavor()
-        svc_template = ConfigServiceTemplate()
-        svc_instance = ConfigServiceInstance()
-        global_vrouter = ConfigGlobalVrouter()
-        fip_pool = ConfigFloatingIpPool()
+        parser = argparse.ArgumentParser()
+        parser.add_argument('--api-server', help = 'API server address')
+        parser.add_argument('--username', help = 'User name')
+        parser.add_argument('--password', help = 'Password')
+        parser.add_argument('--tenant', help = 'Tenant name')
+        parser.add_argument('--region', help = 'Region name')
 
-        self.parser = argparse.ArgumentParser()
-        self.parser.add_argument('--api-server', help = 'API server address')
-        self.parser.add_argument('--username', help = 'User name')
-        self.parser.add_argument('--password', help = 'Password')
-        self.parser.add_argument('--tenant', help = 'Tenant name')
-        self.parser.add_argument('--region', help = 'Region name')
         cmd_list = ['add', 'set', 'show', 'delete', 'help']
-        self.parser.add_argument('cmd', choices = cmd_list)
+        parser.add_argument('cmd', choices = cmd_list)
 
-        subparsers = self.parser.add_subparsers()
+        subparsers = parser.add_subparsers()
         self.sub_cmd_dict = {}
 
         sub_parser = subparsers.add_parser('vdns')
-        sub_parser.set_defaults(obj = vdns, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigVirtualDns,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--domain-name', metavar = '<domain name>',
                 help = 'The name of DNS domain')
@@ -1687,7 +1762,8 @@ class ConfigShell():
                 help = 'The name of next virtual DNS service or the IP address of DNS server reachable by fabric.')
 
         sub_parser = subparsers.add_parser('ipam')
-        sub_parser.set_defaults(obj = ipam, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigIpam,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--dns-type',
                 choices = ['none', 'default', 'tenant', 'virtual'],
@@ -1704,7 +1780,8 @@ class ConfigShell():
                 help = 'The address of NTP server')
 
         sub_parser = subparsers.add_parser('policy')
-        sub_parser.set_defaults(obj = policy, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigPolicy,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--rule', metavar = '<rule index>',
                 help = 'Rule index')
@@ -1729,7 +1806,8 @@ class ConfigShell():
                 metavar = '<service>', help = 'Service')
 
         sub_parser = subparsers.add_parser('security-group')
-        sub_parser.set_defaults(obj = sg, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigSecurityGroup,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--rule', metavar = '<rule index>',
                 help = 'Rule index')
@@ -1744,7 +1822,8 @@ class ConfigShell():
                 metavar = '<start:end>', help = 'The range of remote port')
 
         sub_parser = subparsers.add_parser('network')
-        sub_parser.set_defaults(obj = net, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigNetwork,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--ipam', metavar = '<IPAM>',
                 help = 'Name of IPAM')
@@ -1756,9 +1835,12 @@ class ConfigShell():
                 help = 'Network policy')
         sub_parser.add_argument('--route-target', metavar = '<route target>',
                 help = 'Route target')
+        sub_parser.add_argument('--route-table', metavar = '<route table>',
+                help = 'Route table')
 
         sub_parser = subparsers.add_parser('floating-ip-pool')
-        sub_parser.set_defaults(obj = fip_pool, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigFloatingIpPool,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--network', metavar = '<network>',
                 help = 'The name of parent virtual network')
@@ -1766,7 +1848,8 @@ class ConfigShell():
         #        help = 'Floating IP')
 
         sub_parser = subparsers.add_parser('vm')
-        sub_parser.set_defaults(obj = vm, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigVirtualMachine,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--image', metavar = '<image>',
                 help = 'Name of image')
@@ -1781,12 +1864,36 @@ class ConfigShell():
                 help = 'Wait till VM is active')
 
         sub_parser = subparsers.add_parser('interface-route-table')
-        sub_parser.set_defaults(obj = irt, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigInterfaceRouteTable,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--route', action = 'append')
 
         sub_parser = subparsers.add_parser('vm-interface')
-        sub_parser.set_defaults(obj = vm_if, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigVmInterface,
+                obj_parser = sub_parser)
+        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('--interface-route-table',
+                help = 'The name of interface route table')
+        sub_parser.add_argument('--security-group', metavar = 'security group',
+                help = 'The name of security group')
+        sub_parser.add_argument('--floating-ip', action = 'store_true',
+                help = 'Floating IP')
+        sub_parser.add_argument('--floating-ip-pool',
+                metavar = '<floating Ip pool>',
+                help = 'The floating IP pool to allocate a floating IP')
+
+        sub_parser = subparsers.add_parser('route-table')
+        sub_parser.set_defaults(obj_class = ConfigRouteTable,
+                obj_parser = sub_parser)
+        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('--route', action = 'append',
+                metavar = '<prefix>/<length>:<next-hop>',
+                help = 'The route and next-hop')
+
+        sub_parser = subparsers.add_parser('vm-interface')
+        sub_parser.set_defaults(obj_class = ConfigVmInterface,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--interface-route-table',
                 help = 'The name of interface route table')
@@ -1800,16 +1907,17 @@ class ConfigShell():
 
         sub_parser = subparsers.add_parser('image')
         self.sub_cmd_dict['image'] = sub_parser
-        sub_parser.set_defaults(obj = image)
+        sub_parser.set_defaults(obj_class = ConfigImage)
         sub_parser.add_argument('name', nargs = '?', default = None)
 
         sub_parser = subparsers.add_parser('flavor')
         self.sub_cmd_dict['flavor'] = sub_parser
-        sub_parser.set_defaults(obj = flavor)
+        sub_parser.set_defaults(obj_class = ConfigFlavor)
         sub_parser.add_argument('name', nargs = '?', default = None)
 
         sub_parser = subparsers.add_parser('service-template')
-        sub_parser.set_defaults(obj = svc_template, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigServiceTemplate,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--mode',
                 choices = ['transparent', 'in-network', 'in-network-nat'],
@@ -1832,7 +1940,8 @@ class ConfigShell():
                 help = 'Type of service interface')
 
         sub_parser = subparsers.add_parser('service-instance')
-        sub_parser.set_defaults(obj = svc_instance, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigServiceInstance,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--template',
                 metavar = '<service template>',
@@ -1855,9 +1964,12 @@ class ConfigShell():
         sub_parser.add_argument('--scale-max',
                 metavar = '<max number of instances>',
                 help = 'The max number of instances')
+        sub_parser.add_argument('--auto-policy', action = 'store_true',
+                help = 'Enable automatic policy')
 
         sub_parser = subparsers.add_parser('link-local')
-        sub_parser.set_defaults(obj = global_vrouter, obj_parser = sub_parser)
+        sub_parser.set_defaults(obj_class = ConfigGlobalVrouter,
+                obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--link-local-address',
                 metavar = '<link local address>:<link local port>',
@@ -1865,43 +1977,34 @@ class ConfigShell():
         sub_parser.add_argument('--fabric-address',
                 metavar = '<fabric address>:<fabric port>',
                 help = 'Fabric address and port')
-        return self.parser
+        self.parser = parser
 
-    def parse(self):
-        args = self.parser.parse_args()
+    def parse(self, argv = None):
+        args = self.parser.parse_args(args = argv)
         return args
 
-    def clients_init(self, args):
-        self.vnc = vnc_api.VncApi(username = args.username,
-                password = args.password, tenant_name = args.tenant,
-                api_server_host = args.api_server)
-        self.nova = novaclient.v1_1.client.Client(username = args.username,
-                api_key = args.password, project_id = args.tenant,
-                region_name = args.region,
-                auth_url = 'http://%s:35357/v2.0' %(args.api_server))
-        self.tenant = self.vnc.project_read(
-                fq_name = ['default-domain', args.tenant])
-        args.obj.handler_init(self.vnc, self.nova, self.tenant)
-
-    def execute(self, args):
+    def run(self, args, client):
+        obj = args.obj_class(client = client)
         if args.cmd == 'add':
-            args.obj.add(args)
+            obj.add(args)
         elif args.cmd == 'set':
-            args.obj.set(args)
+            obj.set(args)
         elif args.cmd == 'show':
-            args.obj.show(args)
+            obj.show(args)
         elif args.cmd == 'delete':
-            args.obj.delete(args)
+            obj.delete(args)
         elif args.cmd == 'help':
             self.do_help(args)
         else:
             print 'Unknown action %s' %(args.cmd)
             return
 
+    def main(self):
+        args = self.parse()
+        client = ConfigClient(args)
+        self.run(args, client)
+
+
 if __name__ == '__main__':
-    shell = ConfigShell()
-    parser = shell.parser_init()
-    args = parser.parse_args()
-    shell.clients_init(args)
-    shell.execute(args)
+    ConfigShell().main()
 
