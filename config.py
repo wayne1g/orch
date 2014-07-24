@@ -1351,7 +1351,7 @@ class ConfigRouteTable():
             self.vnc.route_table_update(obj)
         else:
             try:
-                self.vnc.table_delete(id = obj.uuid)
+                self.vnc.route_table_delete(id = obj.uuid)
             except Exception as e:
                 print 'ERROR: %s' %(str(e))
 
