@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import sys
-from config import *
+from config_shell import *
 
 default_client_args = [
     ('--username', 'admin'),
