@@ -8,12 +8,40 @@ from config_obj import *
 from ncclient import manager as netconf
 from ncclient.xml_ import *
 
+class VpnNetconf():
+    def __init__(self):
+        self.client = None
+
+    def session_open(self, svc_client, mgmt_addr = None):
+        if not mgmt_addr:
+            service = VpnService(svc_client)
+            print 'Looking for service...'
+            if not service.obj_check(service.name):
+                print 'No service available.'
+                return
+            mgmt_addr = service.mgmt_addr_get()
+        self.client = netconf.connect(host = mgmt_addr, port = 830,
+                username = 'root', password = 'passWD',
+                hostkey_verify = False, device_params={'name':'junos'})
+        return self.client
+
+    def session_close(self):
+        self.client.close_session()
+
+
 class VpnService():
     def __init__(self, client):
         self.mgmt_addr = None
         self.client = client
         self.name = 'vsrx-vpn-' + client.tenant.name
         self.svc = ConfigServiceInstance(client = client)
+
+    def gateway_get(self, name):
+        vn = self.client.vnc.virtual_network_read(
+                fq_name = ['default-domain', 'admin', name])
+        ipam = vn.get_network_ipam_refs()[0]
+        subnet = ipam['attr'].get_ipam_subnets()[0]
+        return subnet.get_default_gateway()
 
     def mgmt_addr_get(self):
         vm = self.client.nova.servers.find(name = self.name + '_1')
@@ -31,19 +59,17 @@ class VpnService():
         else:
             print 'No service.'
 
-    def add(self, name):
-        if self.obj_check(self.name):
-            print 'Service exists.'
-            return
+    def vm_create(self, name):
         print 'Launch service instance.'
-        vn = ConfigNetwork(client = self.client)
-        vn_name = 'vpn-' + self.client.tenant.name
-        vn.add(name = vn_name, ipam = 'ipam-default', subnet = '100.64.10.0/24')
+        #vn = ConfigNetwork(client = self.client)
+        #vn_name = 'vpn-' + self.client.tenant.name
+        #vn.add(name = vn_name, ipam = 'ipam-default', subnet = '100.64.10.0/24')
         self.svc.add(name = self.name, template = 'vsrx-vpn',
                 mgmt_net = 'admin:management',
-                left_net = vn_name, right_net = 'admin:public')
+                left_net = 'access', left_route = '0.0.0.0/0',
+                right_net = 'admin:public')
         count = 0
-        while (count < 10):
+        while (count < 30):
             print 'Waiting for VM to be created...%d' %(count)
             try:
                 vm = self.client.nova.servers.find(name = self.name + '_1')
@@ -51,25 +77,26 @@ class VpnService():
                 break
             except:
                 count += 1
-                time.sleep(3)
+                time.sleep(5)
 
         count = 0
-        while (count < 10):
+        while (count < 30):
             print 'VM is in the state of %s...%d' %(vm.status, count)
             vm = self.client.nova.servers.find(name = self.name + '_1')
             if vm.status == 'ACTIVE':
                 print 'VM %s is %s' %(vm.name, vm.status)
                 break
             count += 1
-            time.sleep(2)
+            time.sleep(3)
         self.mgmt_addr = vm.addresses['management'][0]['addr']
 
         print 'Post-launch configuration.'
         vm_if = ConfigVmInterface(client = self.client)
-        vm_if.delete(name = vn_name, sg = 'default', vm_id = vm.id)
+        vm_if.delete(name = 'access', sg = 'default', vm_id = vm.id)
         vm_if.delete(name = 'management', sg = 'default', vm_id = vm.id)
         vm_if.delete(name = 'public', sg = 'default', vm_id = vm.id)
 
+    def service_boot(self):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         count = 0
@@ -78,21 +105,61 @@ class VpnService():
             try:
                 ssh.connect(self.mgmt_addr, username = 'root',
                         password = 'passWD', timeout = 5)
-                print 'Service is up.'
                 break
             except:
                 count += 1
+        return ssh
 
-        print 'Prepare for provisioning service...'
+    def netconf_enable(self, ssh):
+        print 'Enable NETCONF...'
         cmd = 'cli -c "configure;' + \
                 'set system services netconf ssh;' + \
                 'set security zones security-zone trust interfaces ' + \
                     'ge-0/0/0.0 host-inbound-traffic system-services all;' + \
                 'commit"'
         ssh.exec_command(cmd)
-        time.sleep(10)
+        time.sleep(8)
         ssh.close()
-        print 'Service is up and running.'
+
+    def service_init(self):
+        print 'Load initial configuration...'
+        list = []
+        list.append('delete security')
+        list.append('set system host-name %s' %(self.name))
+        list.append('set interfaces ge-0/0/1 unit 0 family inet dhcp')
+        list.append('set interfaces ge-0/0/2 unit 0 family inet dhcp')
+        gw = self.gateway_get(name = 'management')
+        list.append('set routing-options static route 0/0 next-hop %s' %(gw))
+        cmd = 'set security policies from-zone trust to-zone trust policy'
+        list.append('%s default-permit match source-address any' %(cmd))
+        list.append('%s default-permit match destination-address any' %(cmd))
+        list.append('%s default-permit match application any' %(cmd))
+        list.append('%s default-permit then permit' %(cmd))
+        cmd = 'set security zones security-zone'
+        list.append('%s trust host-inbound-traffic system-services all' %(cmd))
+        list.append('%s trust interfaces ge-0/0/0.0' %(cmd))
+        list.append('%s trust tcp-rst' %(cmd))
+        list.append('%s left host-inbound-traffic system-services all' %(cmd))
+        list.append('%s left interfaces ge-0/0/1.0' %(cmd))
+        list.append('%s right host-inbound-traffic system-services all' %(cmd))
+        list.append('%s right interfaces ge-0/0/2.0' %(cmd))
+
+        nc = VpnNetconf()
+        nc_client = nc.session_open(self.client, self.mgmt_addr)
+        nc_client.load_configuration(action = 'set', config = list)
+        nc_client.commit()
+        nc.session_close()
+        time.sleep(5)
+
+    def add(self, name):
+        if self.obj_check(self.name):
+            print 'Service exists.'
+            return
+        self.vm_create(name)
+        ssh = self.service_boot()
+        self.netconf_enable(ssh)
+        self.service_init()
+        print 'Service is up.'
 
     def delete(self, name):
         if not self.obj_check(self.name):
@@ -100,7 +167,7 @@ class VpnService():
             return
         self.svc.delete(self.name)
         count = 0
-        while (count < 15):
+        while (count < 30):
             print 'Waiting for VM instance to be deleted...%d' %(count)
             try:
                 vm = self.client.nova.servers.find(name = self.name + '_1')
@@ -110,33 +177,12 @@ class VpnService():
             except:
                 print 'Service instance is deleted.'
                 break
-        print 'Waiting for clean up...'
-        time.sleep(10)
-        vn = ConfigNetwork(client = self.client)
-        vn_name = 'vpn-' + self.client.tenant.name
-        vn.delete(name = vn_name)
+        #print 'Waiting for clean up...'
+        #time.sleep(10)
+        #vn = ConfigNetwork(client = self.client)
+        #vn_name = 'vpn-' + self.client.tenant.name
+        #vn.delete(name = vn_name)
         print 'Service is deleted.'
-
-
-class VpnNetconf():
-    def __init__(self):
-        self.client = None
-
-    def session_open(self, svc_client):
-        service = VpnService(svc_client)
-        print 'Looking for service...'
-        if not service.obj_check(service.name):
-            print 'No service available.'
-            return
-        mgmt_addr = service.mgmt_addr_get()
-        self.client = netconf.connect(host = mgmt_addr, port = 830,
-                username = 'root', password = 'passWD',
-                hostkey_verify = False, device_params={'name':'junos'})
-        return self.client
-
-    def session_close(self):
-        self.client.close_session()
-
 
 
 class VpnIkePolicy():
@@ -179,16 +225,17 @@ class VpnIkePolicy():
 
         print 'Adding...'
         list = []
-        list.append('set security ike proposal %s authentication-method pre-shared-keys' %(name))
-        list.append('set security ike proposal %s dh-group group2' %(name))
-        list.append('set security ike policy %s proposals %s' %(name, name))
-        list.append('set security ike policy %s pre-shared-key ascii-text "$9$W-FxVwGDiPTzZU9pBRle4aZUjqf5F6CuTQcl"' %(name))
+        cmd = 'set security ike'
+        list.append('%s proposal %s authentication-method pre-shared-keys' %(cmd, name))
+        list.append('%s proposal %s dh-group group2' %(cmd, name))
+        list.append('%s policy %s proposals %s' %(cmd, name, name))
+        list.append('%s policy %s pre-shared-key ascii-text "$9$W-FxVwGDiPTzZU9pBRle4aZUjqf5F6CuTQcl"' %(cmd, name))
         if auth_algo:
-            list.append('set security ike proposal %s authentication-algorithm %s' %(name, auth_algo))
+            list.append('%s proposal %s authentication-algorithm %s' %(cmd, name, auth_algo))
         if encryp_algo:
-            list.append('set security ike proposal %s encryption-algorithm %s' %(name, encryp_algo))
+            list.append('%s proposal %s encryption-algorithm %s' %(cmd, name, encryp_algo))
         if mode:
-            list.append('set security ike policy %s mode %s' %(name, mode))
+            list.append('%s policy %s mode %s' %(cmd, name, mode))
 
         nc_client.load_configuration(action = 'set', config = list)
         nc_client.commit()
@@ -252,6 +299,87 @@ class VpnIpsecPolicy():
 
         print 'Adding...'
         list = []
+        cmd = 'set security ipsec'
+        list.append('%s proposal %s protocol esp' %(cmd, name))
+        list.append('%s policy %s proposals %s' %(cmd, name, name))
+        list.append('%s policy %s perfect-forward-secrecy keys group2' %(cmd, name))
+        if auth_algo:
+            list.append('%s proposal %s authentication-algorithm %s' %(cmd, name, auth_algo))
+        if encryp_algo:
+            list.append('%s proposal %s encryption-algorithm %s' %(cmd, name, encryp_algo))
+
+        nc_client.load_configuration(action = 'set', config = list)
+        nc_client.commit()
+        nc.session_close()
+        time.sleep(3)
+        print 'Done.'
+
+    def delete(self, name):
+        nc = VpnNetconf()
+        nc_client = nc.session_open(self.client)
+        if not nc_client:
+            return
+
+        print 'Deleting...'
+        list = []
+        list.append('delete security ipsec proposal %s' %(name))
+        list.append('delete security ipsec policy %s' %(name))
+
+        nc_client.load_configuration(action = 'set', config = list)
+        nc_client.commit()
+        nc.session_close()
+        time.sleep(3)
+        print 'Done.'
+
+
+class VpnConnection():
+    def __init__(self, client):
+        self.client = client
+
+    def show(self, name = None):
+        nc = VpnNetconf()
+        nc_client = nc.session_open(self.client)
+        if not nc_client:
+            return
+
+        root_filter = new_ele('filter')
+        config_filter = sub_ele(root_filter, 'configuration')
+        sub_ele(config_filter, 'security')
+        result = nc_client.get_config('running', filter = root_filter)
+
+        security = result.xpath('data/configuration/security')[0]
+        for policy in ipsec.xpath('policy'):
+            print '\n', policy.xpath('name')[0].text
+            proposal_name = policy.xpath('proposals')[0].text
+            for proposal in ipsec.xpath('proposal'):
+                if (proposal.xpath('name')[0].text == proposal_name):
+                    if proposal.xpath('authentication-algorithm'):
+                        print '  authentication-algorithm:', \
+                            proposal.xpath('authentication-algorithm')[0].text
+                    if proposal.xpath('encryption-algorithm'):
+                        print '  encryption-algorithm:', \
+                            proposal.xpath('encryption-algorithm')[0].text
+        nc.session_close()
+
+    def add(self, name, ike_policy = None, ipsec_policy = None,
+            peer_address = None):
+        nc = VpnNetconf()
+        nc_client = nc.session_open(self.client)
+        if not nc_client:
+            return
+
+        print 'Adding...'
+        list = []
+        list.append('set security ike gateway %s ike-policy %s' %(name, ike_policy))
+        list.append('set security ike gateway %s address %s' %(name, peer_address))
+        list.append('set security ike gateway %s external-interface ge-0/0/2.0' %(name))
+
+        list.append('set security ipsec vpn %s ike gateway %s' %(name, name))
+        list.append('set security ipsec vpn %s ike ipsec-policy %s' %(name, ipsec_policy))
+
+
+
+
         list.append('set security ipsec proposal %s protocol esp' %(name))
         list.append('set security ipsec policy %s proposals %s' %(name, name))
         list.append('set security ipsec policy %s perfect-forward-secrecy keys group2' %(name))
@@ -282,20 +410,6 @@ class VpnIpsecPolicy():
         nc.session_close()
         time.sleep(3)
         print 'Done.'
-
-
-class VpnConnection():
-    def __init__(self):
-        pass
-
-    def show(self, args):
-        print args
-
-    def add(self, args):
-        print args
-
-    def delete(self, args):
-        print args
 
 
 class VpnShell():
@@ -409,8 +523,12 @@ class VpnShell():
                         args.ike_policy, args.ipsec_policy, args.peer_address)
         elif args.cmd == 'delete':
             if (args.obj_class == VpnService):
-                obj.delete(None)
+                obj.delete(args.name)
             elif (args.obj_class == VpnIkePolicy):
+                obj.delete(args.name)
+            elif (args.obj_class == VpnIpsecPolicy):
+                obj.delete(args.name)
+            elif (args.obj_class == VpnConnection):
                 obj.delete(args.name)
         else:
             print 'Unknown action %s' %(args.cmd)
