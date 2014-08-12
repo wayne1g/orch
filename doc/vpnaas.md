@@ -124,11 +124,11 @@ Update `/etc/contrail/openstackrc` with proper access settings.
 Once the cloud is prepared, run utility `vpnaas` to do the followings.
 ```
 # vpnaas --tenant ottawa add ike-policy ike-phase1 --auth-algorithm sha1 --encryption-algorithm aes-128-cbc --phase1-mode main
-#vpnaas --tenant ottawa add ipsec-policy ipsec-phase2 --auth-algorithm hmac-sha1-96 --encryption-algorithm aes-128-cbc
-#vpnaas --tenant ottawa add connection sunnyvale --dst-subnet 192.168.20.0/24 --peer-address 10.84.53.60 --ike-policy ike-phase1 --ipsec-policy ipsec-phase2
+# vpnaas --tenant ottawa add ipsec-policy ipsec-phase2 --auth-algorithm hmac-sha1-96 --encryption-algorithm aes-128-cbc
+# vpnaas --tenant ottawa add connection sunnyvale --dst-subnet 192.168.20.0/24 --peer-address 10.84.53.60 --ike-policy ike-phase1 --ipsec-policy ipsec-phase2
 # vpnaas --tenant sunnyvale add ike-policy ike-phase1 --auth-algorithm sha1 --encryption-algorithm aes-128-cbc --phase1-mode main
-#vpnaas --tenant sunnyvale add ipsec-policy ipsec-phase2 --auth-algorithm hmac-sha1-96 --encryption-algorithm aes-128-cbc
-#vpnaas --tenant sunnyvale add connection ottawa --dst-subnet 192.168.10.0/24 --peer-address 10.84.53.61 --ike-policy ike-phase1 --ipsec-policy ipsec-phase2
+# vpnaas --tenant sunnyvale add ipsec-policy ipsec-phase2 --auth-algorithm hmac-sha1-96 --encryption-algorithm aes-128-cbc
+# vpnaas --tenant sunnyvale add connection ottawa --dst-subnet 192.168.10.0/24 --peer-address 10.84.53.61 --ike-policy ike-phase1 --ipsec-policy ipsec-phase2
 ```
 Now, an IPSec tunnel is created. Virtual machine "host-ottawa" is able to communicate with "host-sunnyvale" through IPSec tunnel.
 
