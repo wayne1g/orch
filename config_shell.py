@@ -156,20 +156,6 @@ class ConfigShell():
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--route', action = 'append')
 
-        sub_parser = subparsers.add_parser('vm-interface')
-        sub_parser.set_defaults(obj_class = ConfigVmInterface,
-                obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--interface-route-table',
-                help = 'The name of interface route table')
-        sub_parser.add_argument('--security-group', metavar = 'security group',
-                help = 'The name of security group')
-        sub_parser.add_argument('--floating-ip', action = 'store_true',
-                help = 'Floating IP')
-        sub_parser.add_argument('--floating-ip-pool',
-                metavar = '<floating Ip pool>',
-                help = 'The floating IP pool to allocate a floating IP')
-
         sub_parser = subparsers.add_parser('route-table')
         sub_parser.set_defaults(obj_class = ConfigRouteTable,
                 obj_parser = sub_parser)
