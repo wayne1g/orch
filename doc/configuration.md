@@ -1,6 +1,6 @@
-#Command line utility to configure Contrail.
+#Command line utility to configure Contrail
 
-#Syntax
+##Syntax
 ```
 config [access options] <command> <object> [name] [options]
 
@@ -161,8 +161,8 @@ config [access options] <command> <object> [name] [options]
 ```
 
 
-#Examples
-## Allocate floating IP to VM interface.
+##Examples
+### Allocate floating IP to VM interface.
 ```
 # config add ipam ipam-default
 # config add policy policy-default
@@ -171,13 +171,13 @@ config [access options] <command> <object> [name] [options]
 # config add vm server --image "CentOS 6.4 1-6" --flavor m1.small --network front-end
 # config add vm database --image "CentOS 6.4 1-6" --flavor m1.small --network back-end
 ```
-## Allocate floating IP to VM interface.
+### Allocate floating IP to VM interface.
 ```
 # config add network public --ipam ipam-default --sbunet 10.8.10.0/24 --route-target 64512:10000
 # config add floating-ip-pool public-pool --network public
 # config add vm-interface server:front-end --floating-ip --floating-ip-pool public-pool
 ```
-## Create layer-3 service template and service instance.
+### Create layer-3 service template and service instance.
 ```
 # config add service template vsrx-l3 --mode in-network --type firewall --image vsrx-12.1x47 --flavor m1.medium --interface-type management --interface-type left --interface-type right
 # config add service-instance vsrx-l3 --template vsrx-l2 --management-network management --left-network front-end --right-network backend
@@ -185,7 +185,7 @@ config [access options] <command> <object> [name] [options]
 # config add network front-end --policy vsrx-l3
 # config add network back-end --policy vsrx-l3
 ```
-## Create layer-2 service template and service instance.
+### Create layer-2 service template and service instance.
 ```
 # config add service template vsrx-l2 --mode transparent --type firewall --image vsrx-12.1x47 --flavor m1.medium --interface-type management --interface-type left --interface-type right
 # config add service-instance vsrx-l2 --template vsrx-l2 --management-network management
