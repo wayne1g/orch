@@ -328,7 +328,7 @@ class ConfigShell():
                 obj.delete(args.name, args.route)
             elif (args.obj_class == ConfigVmInterface):
                 obj.delete(args.name, args.security_group,
-                           args.interface_route_table, args,floating_ip)
+                           args.interface_route_table, args.floating_ip)
             elif (args.obj_class == ConfigGlobalVrouter):
                 obj.delete(args.name)
         else:
