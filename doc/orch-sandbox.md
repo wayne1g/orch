@@ -5,9 +5,31 @@ In a system with the integration of Contrail and OpenStack, the easiest way to t
 In the case that user wants to run orchestration on some remote host, user needs to either install all required libraries, or create a sandbox including those libraries. Other than prepare required libraries, couple more steps are also needed. Here are all steps.
 
 ####1. Prepare dependencies
-Assume the basic Python package is already installed on the host. Run the program to find out what dependencies are required, and copy them into the sandbox. Here is an example script to copy dependencies into the sandbox for running configuration utility.
-https://github.com/tonyliu0592/orch/blob/master/mksb
+Assume the basic Python package is already installed on the host. Run the program to find out what dependencies are required, and copy them into the sandbox. Here is an example script to copy OpenStack Nova client API, OpenContrail configuration API and their dependencies into the sandbox for running configuration utility.
+```
+#!/bin/sh
 
+# CentOS
+path="/usr/lib/python2.6/site-packages/"
+# Ubuntu
+#path="/usr/lib/python2.7/dist-packages/"
+
+file_list="cfgm_common \
+           chardet \
+           novaclient \
+           prettytable.py \
+           requests \
+           six.py \
+           urllib3 \
+           vnc_api"
+
+mkdir sandbox
+
+for file in $file_list
+do
+  cp -r $path$file ./sandbox
+done
+```
 ####2. Add endpoint to OpenStack
 As a part of the system (Contrail and OpenStack) installation, an internal endpoint is configured for each service in OpenStack. Here is an example.
 ```
