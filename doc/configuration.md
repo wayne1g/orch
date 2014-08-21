@@ -73,6 +73,7 @@ config [access options] <command> <object> [name] [options]
         --policy <policy>
         --route-target <route target>
         --route-table <route table>
+        --l2
 
     show network [name]
 
