@@ -124,6 +124,8 @@ class ConfigShell():
                 help = 'Route target')
         sub_parser.add_argument('--route-table', metavar = '<route table>',
                 help = 'Route table')
+        sub_parser.add_argument('--l2', action = 'store_true',
+                help = 'Layer 2 network, layer 2&3 by default')
 
         sub_parser = subparsers.add_parser('floating-ip-pool')
         sub_parser.set_defaults(obj_class = ConfigFloatingIpPool,
@@ -277,7 +279,7 @@ class ConfigShell():
                         args.direction)
             elif (args.obj_class == ConfigNetwork):
                 obj.add(args.name, args.ipam, args.subnet, args.policy,
-                        args.route_target, args.route_table)
+                        args.route_target, args.route_table, args.l2)
             elif (args.obj_class == ConfigFloatingIpPool):
                 obj.add(args.name, args.network, args.floating_ip)
             elif (args.obj_class == ConfigServiceTemplate):
