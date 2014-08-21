@@ -1206,7 +1206,8 @@ class ConfigVirtualMachine():
         net_list = self.vnc.virtual_networks_list()['virtual-networks']
         for item in network:
             for vn in net_list:
-                if (vn['fq_name'][2] == item):
+                if (item['fq_name'][1] == self.tenant.name) and \
+                        (item['fq_name'][2] == item):
                     networks.append({'net-id': vn['uuid']})
                     break
             else:
