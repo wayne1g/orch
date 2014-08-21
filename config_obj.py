@@ -734,12 +734,15 @@ class ConfigNetwork():
         obj.del_route_table(ref_obj = rt_obj)
 
     def add(self, name, ipam = None, subnet = None, policy = None,
-            route_target = None, route_table = None):
+            route_target = None, route_table = None, l2 = None):
         create = False
         obj = self.obj_get(name)
         if not obj:
             obj = vnc_api.VirtualNetwork(name = name,
                     parent_obj = self.tenant)
+            if l2:
+                prop = vnc_api.VirtualNetworkType(forwarding_mode = 'l2')
+                obj.set_virtual_network_properties(prop)
             create = True
         if ipam and subnet:
             self.ipam_add(obj, ipam, subnet)
