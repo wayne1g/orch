@@ -1193,7 +1193,8 @@ class ConfigVirtualMachine():
             for item in list:
                 print '    %s' %(item.name)
 
-    def add(self, name, image, flavor, network, node = None, wait = None):
+    def add(self, name, image, flavor, network, node = None, user_data = None,
+            wait = None):
         try:
             image_obj = self.nova.images.find(name = image)
         except Exception as e:
@@ -1229,7 +1230,7 @@ class ConfigVirtualMachine():
         try:
             vm = self.nova.servers.create(name = name, image = image_obj,
                     flavor = flavor_obj, availability_zone = node,
-                    nics = networks)
+                    nics = networks, userdata = user_data)
         except Exception as e:
             print 'ERROR: %s' %(str(e))
             return
@@ -1430,38 +1431,31 @@ class ConfigVmInterface():
         self.tenant = client.tenant
         self.nova = client.nova
 
-    def obj_list(self):
+    def obj_list(self, vm_id = None):
         list = []
-        vm_list = self.nova.servers.list()
-        vm_if_list = self.vnc.virtual_machine_interfaces_list()['virtual-machine-interfaces']
-        for vm in vm_list:
-            for vm_if in vm_if_list:
-                if (vm_if['fq_name'][0] == vm.id):
-                    if_obj = self.vnc.virtual_machine_interface_read(
-                            id = vm_if['uuid'])
-                    vn_name = if_obj.get_virtual_network_refs()[0]['to'][2]
-                    name = '%s:%s' %(vm.name, vn_name)
-                    list.append({'name':name, 'uuid':vm_if['uuid'],
-                            'obj':if_obj})
-        return list
-
-    def obj_list_by_vm_id(self, vm_id):
-        list = []
-        vm_if_list = self.vnc.virtual_machine_interfaces_list()['virtual-machine-interfaces']
-        for vm_if in vm_if_list:
-            if (vm_if['fq_name'][0] == vm_id):
+        if vm_id:
+            vm = self.virtual_machine_read(id = vm_id)
+            if_ref_list = vm.get_virtual_machine_interface_back_refs()
+            for if_ref in if_ref_list:
                 if_obj = self.vnc.virtual_machine_interface_read(
-                        id = vm_if['uuid'])
+                        id = if_ref['uuid'])
                 vn_name = if_obj.get_virtual_network_refs()[0]['to'][2]
-                list.append({'name':vn_name, 'uuid':vm_if['uuid'],
+                list.append({'name':vn_name, 'uuid':if_ref['uuid'],
                         'obj':if_obj})
+        else:
+            for vm_nova in self.nova.servers.list():
+                vm = self.vnc.virtual_machine_read(id = vm_nova.id)
+                if_ref_list = vm.get_virtual_machine_interface_back_refs()
+                for if_ref in if_ref_list:
+                    if_obj = self.vnc.virtual_machine_interface_read(
+                            id = if_ref['uuid'])
+                    vn_name = if_obj.get_virtual_network_refs()[0]['to'][2]
+                    list.append({'name':'%s:%s' %(vm_nova.name, vn_name),
+                            'uuid':if_ref['uuid'], 'obj':if_obj})
         return list
 
     def obj_get(self, name, vm_id = None):
-        if vm_id:
-            list = self.obj_list_by_vm_id(vm_id)
-        else:
-            list = self.obj_list()
+        list = self.obj_list(vm_id)
         for item in list:
             if (item['name'] == name):
                 return item['obj']
