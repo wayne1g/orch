@@ -43,7 +43,7 @@ class ConfigShell():
         sub_parser.add_argument('--record-order',
                 choices = ['fixed', 'random', 'round-robin'],
                 default = 'random',
-                metavar = '[ random | fixed | round-robin ]',
+                metavar = 'random | fixed | round-robin',
                 help = 'The order of DNS records')
         sub_parser.add_argument('--next-dns', metavar = '<next DNS>',
                 help = 'The name of next virtual DNS service or the IP address of DNS server reachable by fabric.')
@@ -54,7 +54,7 @@ class ConfigShell():
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--dns-type',
                 choices = ['none', 'default', 'tenant', 'virtual'],
-                metavar = '[ none | default | virtual | tenant ]',
+                metavar = 'none | default | virtual | tenant',
                 help = 'The type of DNS service')
         sub_parser.add_argument('--virtual-dns', metavar = '<virtual DNS>',
                 help = 'The name of virtual DNS service')
@@ -73,10 +73,10 @@ class ConfigShell():
         sub_parser.add_argument('--rule', metavar = '<rule index>',
                 help = 'Rule index')
         sub_parser.add_argument('--direction', choices = ['<>', '>'],
-                metavar = '[ <> | > ]', help = 'Direction')
+                metavar = '<> | >', help = 'Direction')
         sub_parser.add_argument('--protocol',
                 choices = ['any', 'tcp', 'udp', 'icmp'],
-                metavar = '[any | tcp | udp | icmp]', help = 'Protocol')
+                metavar = 'any | tcp | udp | icmp', help = 'Protocol')
         sub_parser.add_argument('--src-net', action = 'append',
                 metavar = '<source network>', help = 'Source network')
         sub_parser.add_argument('--dst-net', action = 'append',
@@ -88,7 +88,7 @@ class ConfigShell():
         sub_parser.add_argument('--action',
                 choices = ['pass', 'deny', 'drop', 'reject', 'alert',
                 'log', 'service'],
-                metavar = '[ pass | deny | drop | reject | alert | log | service ]', help = 'Action')
+                metavar = 'pass | deny | drop | reject | alert | log | service', help = 'Action')
         sub_parser.add_argument('--service', action = 'append',
                 metavar = '<service>', help = 'Service')
 
@@ -99,10 +99,10 @@ class ConfigShell():
         sub_parser.add_argument('--rule', metavar = '<rule index>',
                 help = 'Rule index')
         sub_parser.add_argument('--direction', choices = ['ingress', 'egress'],
-                metavar = '[ ingress | egress ]', help = 'Direction')
+                metavar = 'ingress | egress', help = 'Direction')
         sub_parser.add_argument('--protocol',
                 choices = ['any', 'tcp', 'udp', 'icmp'],
-                metavar = '[any | tcp | udp | icmp]', help = 'Protocol')
+                metavar = 'any | tcp | udp | icmp', help = 'Protocol')
         sub_parser.add_argument('--address', action = 'append',
                 metavar = '<prefix/length>', help = 'Remote IP address')
         sub_parser.add_argument('--port', action = 'append', type = str,
@@ -131,8 +131,6 @@ class ConfigShell():
         sub_parser.set_defaults(obj_class = ConfigFloatingIpPool,
                 obj_parser = sub_parser)
         sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--network', metavar = '<network>',
-                help = 'The name of parent virtual network')
         #sub_parser.add_argument('--floating-ip', action = 'store_true',
         #        help = 'Floating IP')
 
@@ -147,6 +145,8 @@ class ConfigShell():
         sub_parser.add_argument('--network', action = 'append',
                 metavar = '<network>',
                 help = 'Name of network')
+        sub_parser.add_argument('--user-data', metavar = '<fine name>',
+                help = 'Full file name containing user data')
         sub_parser.add_argument('--node', metavar = '<node name>',
                 help = 'Name of compute node')
         sub_parser.add_argument('--wait', action = 'store_true',
@@ -174,11 +174,12 @@ class ConfigShell():
                 help = 'The name of interface route table')
         sub_parser.add_argument('--security-group', metavar = 'security group',
                 help = 'The name of security group')
-        sub_parser.add_argument('--floating-ip', action = 'store_true',
+        sub_parser.add_argument('--floating-ip',
+                metavar = 'any | <floating IP>',
                 help = 'Floating IP')
         sub_parser.add_argument('--floating-ip-pool',
-                metavar = '<floating Ip pool>',
-                help = 'The floating IP pool to allocate a floating IP')
+                metavar = '<tenant>:<network>:<floating IP pool>',
+                help = 'The floating IP pool to allocate a floating IP from')
 
         sub_parser = subparsers.add_parser('image')
         self.sub_cmd_dict['image'] = sub_parser
@@ -196,11 +197,11 @@ class ConfigShell():
         sub_parser.add_argument('name', nargs = '?', default = None)
         sub_parser.add_argument('--mode',
                 choices = ['transparent', 'in-network', 'in-network-nat'],
-                metavar = '[ transparent | in-network | in-network-nat ]',
+                metavar = 'transparent | in-network | in-network-nat',
                 help = 'Service mode')
         sub_parser.add_argument('--type',
                 choices = ['firewall', 'analyzer'],
-                metavar = '[ firewall | analyzer ]',
+                metavar = 'firewall | analyzer',
                 help = 'Service type')
         sub_parser.add_argument('--image', metavar = '<image>',
                 help = 'Name of image')
@@ -210,7 +211,7 @@ class ConfigShell():
                 help = 'Enable service scaling')
         sub_parser.add_argument('--interface-type',
                 choices = ['management', 'left', 'right', 'other'],
-                metavar = '[ management | left | right | other ]',
+                metavar = 'management | left | right | other',
                 action = 'append',
                 help = 'Type of service interface')
 
@@ -222,16 +223,16 @@ class ConfigShell():
                 metavar = '<service template>',
                 help = 'Service template')
         sub_parser.add_argument('--management-network',
-                metavar = '<management network>',
+                metavar = '[<tenant>:]<management network>',
                 help = 'Management network')
         sub_parser.add_argument('--left-network',
-                metavar = '<left network>',
+                metavar = '[<tenant>:]<left network>',
                 help = 'Left network')
         sub_parser.add_argument('--left-route',
                 metavar = '<prefix/length>',
                 help = 'Static route to left interface')
         sub_parser.add_argument('--right-network',
-                metavar = '<right network>',
+                metavar = '[<tenant>:]<right network>',
                 help = 'Right network')
         sub_parser.add_argument('--right-route',
                 metavar = '<prefix/length>',
@@ -281,7 +282,7 @@ class ConfigShell():
                 obj.add(args.name, args.ipam, args.subnet, args.policy,
                         args.route_target, args.route_table, args.l2)
             elif (args.obj_class == ConfigFloatingIpPool):
-                obj.add(args.name, args.network, args.floating_ip)
+                obj.add(args.name)
             elif (args.obj_class == ConfigServiceTemplate):
                 obj.add(args.name, args.mode, args.type, args.image,
                         args.flavor, args.interface_type)
@@ -292,7 +293,7 @@ class ConfigShell():
                         args.auto_policy, args.scale_max)
             elif (args.obj_class == ConfigVirtualMachine):
                 obj.add(args.name, args.image, args.flavor, args.network,
-                        args.node, args.wait)
+                        args.node, args.user_data, args.wait)
             elif (args.obj_class == ConfigRouteTable):
                 obj.add(args.name, args.route)
             elif (args.obj_class == ConfigInterfaceRouteTable):
