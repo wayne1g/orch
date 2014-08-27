@@ -82,18 +82,18 @@ config [access options] <command> <object> [name] [options]
         --route-target <route target>
         --route-table <route table>
 
-    add floating-ip-pool <name>
-        --network <network>
+    add floating-ip-pool <network>:<pool>
 
-    show floating-ip-pool [name]
+    show floating-ip-pool [<network>:<pool>]
 
-    delete floating-ip-pool <name>
+    delete floating-ip-pool <network>:<pool>
 
     add vm <name>
         --image <image>
         --flavor <flavor>
         --network <network>
         --node <node name>
+        --user-data <file name>
         --wait
 
     show vm [name]
@@ -110,8 +110,8 @@ config [access options] <command> <object> [name] [options]
     add vm-interface <VM>:<network>
         --interface-route-table <name>
         --security-group <name>
-        --floating-ip-pool <name>
-        --floating-ip
+        --floating-ip-pool <tenant>:<network>:<pool>
+        --floating-ip any | <IP>
 
     show vm-interface <VM>:<network>
 
