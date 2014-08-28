@@ -729,7 +729,8 @@ class ConfigNetwork():
         obj.del_route_table(ref_obj = rt_obj)
 
     def add(self, name, ipam = None, subnet = None, policy = None,
-            route_target = None, route_table = None, l2 = None):
+            route_target = None, route_table = None, shared = None,
+            external = None, l2 = None):
         create = False
         obj = self.obj_get(name)
         if not obj:
@@ -738,6 +739,10 @@ class ConfigNetwork():
             if l2:
                 prop = vnc_api.VirtualNetworkType(forwarding_mode = 'l2')
                 obj.set_virtual_network_properties(prop)
+            if shared:
+                obj.set_is_shared(shared)
+            if external:
+                obj.set_router_external(external)
             create = True
         if ipam and subnet:
             self.ipam_add(obj, ipam, subnet)
@@ -793,7 +798,8 @@ class ConfigFloatingIpPool():
 
     def obj_get(self, name):
         for item in self.obj_list():
-            if (name == '%s:%s' %(item['fq_name'][2], item['fq_name'][3])):
+            if (item['fq_name'][1] == self.tenant.name) and \
+                    (name == '%s:%s' %(item['fq_name'][2], item['fq_name'][3])):
                 return self.vnc.floating_ip_pool_read(id = item['uuid'])
 
     def prop_subnet_show(self, obj):
@@ -838,7 +844,8 @@ class ConfigFloatingIpPool():
             self.obj_show(obj)
         else:
             for item in self.obj_list():
-                print '    %s:%s' %(item['fq_name'][2], item['fq_name'][3])
+                if (item['fq_name'][1] == self.tenant.name):
+                    print '    %s:%s' %(item['fq_name'][2], item['fq_name'][3])
 
     def add(self, name):
         pool_name = name.split(':')
