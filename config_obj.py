@@ -40,8 +40,7 @@ class ConfigVirtualDns():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 print '    %s' %(item['fq_name'][1])
 
     def add(self, name, domain_name, record_order, next_dns):
@@ -119,8 +118,7 @@ class ConfigIpam():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
@@ -281,8 +279,7 @@ class ConfigPolicy():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
@@ -467,8 +464,7 @@ class ConfigSecurityGroup():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
@@ -653,8 +649,7 @@ class ConfigNetwork():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
@@ -734,7 +729,8 @@ class ConfigNetwork():
         obj.del_route_table(ref_obj = rt_obj)
 
     def add(self, name, ipam = None, subnet = None, policy = None,
-            route_target = None, route_table = None, l2 = None):
+            route_target = None, route_table = None, shared = None,
+            external = None, l2 = None):
         create = False
         obj = self.obj_get(name)
         if not obj:
@@ -743,6 +739,10 @@ class ConfigNetwork():
             if l2:
                 prop = vnc_api.VirtualNetworkType(forwarding_mode = 'l2')
                 obj.set_virtual_network_properties(prop)
+            if shared:
+                obj.set_is_shared(shared)
+            if external:
+                obj.set_router_external(external)
             create = True
         if ipam and subnet:
             self.ipam_add(obj, ipam, subnet)
@@ -798,7 +798,8 @@ class ConfigFloatingIpPool():
 
     def obj_get(self, name):
         for item in self.obj_list():
-            if (item['fq_name'][3] == name):
+            if (item['fq_name'][1] == self.tenant.name) and \
+                    (name == '%s:%s' %(item['fq_name'][2], item['fq_name'][3])):
                 return self.vnc.floating_ip_pool_read(id = item['uuid'])
 
     def prop_subnet_show(self, obj):
@@ -842,32 +843,20 @@ class ConfigFloatingIpPool():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
-                print '    %s' %(item['fq_name'][3])
+            for item in self.obj_list():
+                if (item['fq_name'][1] == self.tenant.name):
+                    print '    %s:%s' %(item['fq_name'][2], item['fq_name'][3])
 
-    def fip_add(self, pool_obj):
-        id = str(uuid.uuid4())
-        obj = vnc_api.FloatingIp(name = id, parent_obj = pool_obj)
-        obj.uuid = id
-        self.vnc.floating_ip_create(obj)     
-
-    def add(self, name, network = None, fip = None):
-        #obj = self.obj_get(name)
-        #if obj:
-        #    if fip:
-        #        self.fip_add(obj)
-        #    return
-        if not network:
-            print 'ERROR: Parent virtual network is not specified!'
+    def add(self, name):
+        pool_name = name.split(':')
+        try:
+            net_obj = self.vnc.virtual_network_read(
+                    fq_name = ['default-domain', self.tenant.name,
+                    pool_name[0]])
+        except Exception as e:
+            print 'ERROR: %s' %(str(e))
             return
-        net = ConfigNetwork()
-        net.handler_init(self.vnc, None, self.tenant)
-        net_obj = net.obj_get(network)
-        if not net_obj:
-            print 'ERROR: Network %s is not found!' %(network)
-            return
-        obj = vnc_api.FloatingIpPool(name = name, parent_obj = net_obj)
+        obj = vnc_api.FloatingIpPool(name = pool_name[1], parent_obj = net_obj)
         try:
             self.vnc.floating_ip_pool_create(obj)
         except Exception as e:
@@ -879,15 +868,18 @@ class ConfigFloatingIpPool():
     def fip_delete(self, pool_obj):
         pass
 
-    def delete(self, name, fip = None):
+    def delete(self, name):
         obj = self.obj_get(name)
         if not obj:
             print 'ERROR: Object %s is not found!' %(name)
-        #if fip:
-        #    self.fip_delete(obj)
-        #    return
-        self.tenant.del_floating_ip_pool(obj)
-        self.vnc.project_update(self.tenant)
+            return
+        if obj.get_floating_ips():
+            print 'ERROR: There are allocated floating IPs!'
+            return
+        for tenant_ref in obj.get_project_back_refs():
+            tenant = self.vnc.project_read(fq_name = tenant_ref['to'])
+            tenant.del_floating_ip_pool(obj)
+            self.vnc.project_update(tenant)
         try:
             self.vnc.floating_ip_pool_delete(id = obj.uuid)
         except Exception as e:
@@ -929,8 +921,7 @@ class ConfigServiceTemplate():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 print '    %s' %(item['fq_name'][1])
 
     def add(self, name, mode, type, image, flavor, interface_type,
@@ -1003,8 +994,7 @@ class ConfigServiceInstance():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
@@ -1111,8 +1101,7 @@ class ConfigImage():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 print '    %s' %(item.name)
 
     def add(self, name):
@@ -1147,8 +1136,7 @@ class ConfigFlavor():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 print '    %s' %(item.name)
 
     def add(self, name):
@@ -1189,8 +1177,7 @@ class ConfigVirtualMachine():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 print '    %s' %(item.name)
 
     def add(self, name, image, flavor, network, node = None, user_data = None,
@@ -1285,8 +1272,7 @@ class ConfigRouteTable():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
@@ -1372,8 +1358,7 @@ class ConfigInterfaceRouteTable():
                 return
             self.obj_show(obj)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
@@ -1533,8 +1518,7 @@ class ConfigVmInterface():
                 return
             self.obj_show(obj, name)
         else:
-            list = self.obj_list()
-            for item in list:
+            for item in self.obj_list():
                     print '    %s' %(item['name'])
 
     def sg_add(self, obj, sg):
@@ -1555,17 +1539,19 @@ class ConfigVmInterface():
             return
         obj.add_interface_route_table(table_obj)
 
-    def fip_add(self, if_obj, fip_pool):
-        pool = ConfigFloatingIpPool()
-        pool.handler_init(self.vnc, None, self.tenant)
-        pool_obj = pool.obj_get(fip_pool)
-        if not pool_obj:
-            print 'ERROR: Floating IP pool %s is not found!' \
-                    %(fip_pool)
+    def fip_add(self, if_obj, fip_pool, fip):
+        pool_name = fip_pool.split(':')
+        pool_name.insert(0, 'default-domain')
+        try:
+            pool_obj = self.vnc.floating_ip_pool_read(fq_name = pool_name)
+        except Exception as e:
+            print 'ERROR: %s' %(str(e))
             return
         id = str(uuid.uuid4())
         obj = vnc_api.FloatingIp(name = id, parent_obj = pool_obj)
         obj.uuid = id
+        if (fip != 'any'):
+            obj.set_floating_ip_address(fip)
         obj.add_project(self.tenant)
         obj.add_virtual_machine_interface(if_obj)
         self.vnc.floating_ip_create(obj)
@@ -1585,7 +1571,7 @@ class ConfigVmInterface():
             self.irt_add(obj, irt)
             update = True
         if fip and fip_pool:
-            self.fip_add(obj, fip_pool)
+            self.fip_add(obj, fip_pool, fip)
             update = True
         if update:
             self.vnc.virtual_machine_interface_update(obj)
