@@ -1366,8 +1366,8 @@ class ConfigInterfaceRouteTable():
         routes = obj.get_interface_route_table_routes()
         if not routes:
             routes = vnc_api.RouteTableType()
-            obj.set_interface_route_table_routes(routes)
         routes.add_route(vnc_api.RouteType(prefix = prefix))
+        obj.set_interface_route_table_routes(routes)
 
     def route_del(self, obj, prefix):
         routes = obj.get_interface_route_table_routes()
@@ -1376,6 +1376,7 @@ class ConfigInterfaceRouteTable():
         for item in routes.get_route():
             if (item.get_prefix() == prefix):
                 routes.delete_route(item)
+        obj.set_interface_route_table_routes(routes)
 
     def add(self, name, route = None):
         create = False
@@ -1530,6 +1531,16 @@ class ConfigVmInterface():
             return
         obj.add_security_group(sg_obj)
 
+    def addr_add(self, obj, addr):
+        id = str(uuid.uuid4())
+        ip_obj = vnc_api.InstanceIp(name = id, instance_ip_address = addr)
+        ip_obj.uuid = id
+        ip_obj.add_virtual_machine_interface(obj)
+        vn_id = obj.get_virtual_network_refs()[0]['uuid']
+        vn_obj = self.vnc.virtual_network_read(id = vn_id)
+        ip_obj.add_virtual_network(vn_obj)
+        self.vnc.instance_ip_create(ip_obj)
+
     def irt_add(self, obj, irt):
         try:
             table_obj = self.vnc.interface_route_table_read(
@@ -1539,7 +1550,7 @@ class ConfigVmInterface():
             return
         obj.add_interface_route_table(table_obj)
 
-    def fip_add(self, if_obj, fip_pool, fip):
+    def fip_add(self, obj, fip_pool, fip):
         pool_name = fip_pool.split(':')
         pool_name.insert(0, 'default-domain')
         try:
@@ -1548,17 +1559,18 @@ class ConfigVmInterface():
             print 'ERROR: %s' %(str(e))
             return
         id = str(uuid.uuid4())
-        obj = vnc_api.FloatingIp(name = id, parent_obj = pool_obj)
-        obj.uuid = id
+        fip_obj = vnc_api.FloatingIp(name = id, parent_obj = pool_obj)
+        fip_obj.uuid = id
         if (fip != 'any'):
-            obj.set_floating_ip_address(fip)
-        obj.add_project(self.tenant)
-        obj.add_virtual_machine_interface(if_obj)
-        self.vnc.floating_ip_create(obj)
+            fip_obj.set_floating_ip_address(fip)
+        fip_obj.add_project(self.tenant)
+        fip_obj.add_virtual_machine_interface(obj)
+        self.vnc.floating_ip_create(fip_obj)
         self.tenant.add_floating_ip_pool(pool_obj)
         self.vnc.project_update(self.tenant)
 
-    def add(self, name, sg = None, irt = None, fip_pool = None, fip = None):
+    def add(self, name, sg = None, irt = None, addr = None,
+            fip_pool = None, fip = None):
         update = False
         obj = self.obj_get(name)
         if not obj:
@@ -1569,6 +1581,9 @@ class ConfigVmInterface():
             update = True
         if irt:
             self.irt_add(obj, irt)
+            update = True
+        if addr:
+            self.addr_add(obj, addr)
             update = True
         if fip and fip_pool:
             self.fip_add(obj, fip_pool, fip)
@@ -1594,6 +1609,16 @@ class ConfigVmInterface():
             return
         obj.del_interface_route_table(table_obj)
 
+    def addr_del(self, obj, addr):
+        ip_list = obj.get_instance_ip_back_refs()
+        for ip in ip_list:
+            ip_obj = self.vnc.instance_ip_read(id = ip['uuid'])
+            if (ip_obj.get_instance_ip_address() == addr):
+                self.vnc.instance_ip_delete(id = ip_obj.uuid)
+                break
+        else:
+            print 'ERROR: IP address %s is not found!' %(addr)
+
     def fip_del(self, obj):
         list = obj.get_floating_ip_back_refs()
         if not list:
@@ -1601,7 +1626,8 @@ class ConfigVmInterface():
         for item in list:
             ip = self.vnc.floating_ip_delete(id = item['uuid'])
 
-    def delete(self, name, sg = None, irt = None, fip = None, vm_id = None):
+    def delete(self, name, sg = None, irt = None, addr = None,
+            fip = None, vm_id = None):
         update = False
         obj = self.obj_get(name, vm_id)
         if not obj:
@@ -1612,6 +1638,9 @@ class ConfigVmInterface():
             update = True
         if irt:
             self.irt_del(obj, irt)
+            update = True
+        if addr:
+            self.addr_del(obj, addr)
             update = True
         if fip:
             self.fip_del(obj)
