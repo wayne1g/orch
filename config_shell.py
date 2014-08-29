@@ -178,6 +178,9 @@ class ConfigShell():
                 help = 'The name of interface route table')
         sub_parser.add_argument('--security-group', metavar = 'security group',
                 help = 'The name of security group')
+        sub_parser.add_argument('--address',
+                metavar = '<IP address>',
+                help = 'IP address')
         sub_parser.add_argument('--floating-ip',
                 metavar = 'any | <floating IP>',
                 help = 'Floating IP')
@@ -305,8 +308,8 @@ class ConfigShell():
                 obj.add(args.name, args.route)
             elif (args.obj_class == ConfigVmInterface):
                 obj.add(args.name, args.security_group,
-                        args.interface_route_table, args.floating_ip_pool,
-                        args.floating_ip)
+                        args.interface_route_table, args.address,
+                        args.floating_ip_pool, args.floating_ip)
             elif (args.obj_class == ConfigGlobalVrouter):
                 obj.add(args.name, args.link_local_address,
                         args.fabric_address)
@@ -336,7 +339,8 @@ class ConfigShell():
                 obj.delete(args.name, args.route)
             elif (args.obj_class == ConfigVmInterface):
                 obj.delete(args.name, args.security_group,
-                           args.interface_route_table, args.floating_ip)
+                           args.interface_route_table, args.address,
+                           args.floating_ip)
             elif (args.obj_class == ConfigGlobalVrouter):
                 obj.delete(args.name)
         else:
