@@ -22,6 +22,7 @@ http://www.juniper.net/support/downloads/?p=firefly#sw
 # glance --os-username <admin username> --os-password <admin password> --os-tenant-name admin --os-auth-url http://127.0.0.1:5000/v2.0/ image-create --name "vSRX 12.1X46-D20.5" --disk-format qcow2 --container-format bare --is-public True --file junos-vsrx-12.1X46-D20.5-domestic.img 
 ```
 ## 1.2 Launch vSRX instance
+The minimum resource required by vSRX is 2 vCPUs, 2G memory and 10G root disk.
 Assume a network is already configured in tennant demo.
 ```
 # nova --os-username <admin username> --os-password <admin password> --os-tenant-name demo --os-auth-url http://127.0.0.1:5000/v2.0/ boot vsrx --flavor m1.medium --image "vSRX 12.1X46-D20.5" --nic net-id=<network UUID>
