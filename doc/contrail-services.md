@@ -18,16 +18,16 @@ Port:
 **Write:** Publish configuration. This is driven by the configuration received from RabbitMQ.
 
 #### RabbitMQ (default is local, configurable)
-Read: Receive configuration sent from the API server who got user request originally.
-Write: The API server getting user request writes configuration to RabbitMQ for all API servers including itself. Then each API server will publish the configuration to IF-MAP server after receiving from RabbitMQ.
+**Read:** Receive configuration sent from the API server who got user request originally.  
+**Write:** The API server getting user request writes configuration to RabbitMQ for all API servers including itself. Then each API server will publish the configuration to IF-MAP server after receiving from RabbitMQ.
 
 #### Collector
-Read: None
-Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
+**Read:** None  
+**Write:** Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 #### Discovery
-Read: Get info of other services, like collector.
-Write: Register itself and IF-MAP server. Send heatbeat. Send request for other services.
+**Read:** Get info of other services, like collector.  
+**Write:** Register itself and IF-MAP server. Send heatbeat. Send request for other services.
 
 
 ### Discovery
@@ -39,12 +39,12 @@ Port:
   5998: REST API for register and request services
 
 #### Other Services
-Read: Recive registration (with VIP in HA case), service request and heartbeat.
-Write: Send requested service info.
+**Read:** Recive registration (with VIP in HA case), service request and heartbeat.
+**Write:** Send requested service info.
 
 #### Collector
-Read: None
-Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
+**Read:** None
+**Write:** Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 
 ### Schema Transformer
@@ -56,20 +56,20 @@ Port:
   8087: introspec for debugging
 
 #### IF-MAP Server
-Read: Receive configuration published by configuration API server.
-Write: None
+**Read:** Receive configuration published by configuration API server.
+**Write:** None
 
 #### Configuration API Server
-Read: Read configuration.
-Write: Write configuration.
+**Read:** Read configuration.
+**Write:** Write configuration.
 
 #### Zookeeper
-Read: None
-Write: Register, first register, first being active. A callback is invoked if it is active. All other instances of schema transformer are passive and stuck at callback. Once the active one is down, one of the passive will be waked up by callback.
+**Read:** None
+**Write:** Register, first register, first being active. A callback is invoked if it is active. All other instances of schema transformer are passive and stuck at callback. Once the active one is down, one of the passive will be waked up by callback.
 
 #### Collector
-Read: None
-Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
+**Read:** None
+**Write:** Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 
 ### Service Monitor
@@ -81,20 +81,20 @@ Port:
   8088: introspec for debugging
 
 #### IF-MAP Server
-Read: Receive configuration published by configuration API server.
-Write: None
+**Read:** Receive configuration published by configuration API server.
+**Write:** None
 
 #### Configuration API Server
-Read: Read configuration.
-Write: Write configuration.
+**Read:** Read configuration.
+**Write:** Write configuration.
 
 #### Zookeeper
-Read: None
-Write: Register, first register, first being active. A callback is invoked if it is active. All other instances of schema transformer are passive and stuck at callback. Once the active one is down, one of the passive will be waked up by callback.
+**Read:** None
+**Write:** Register, first register, first being active. A callback is invoked if it is active. All other instances of schema transformer are passive and stuck at callback. Once the active one is down, one of the passive will be waked up by callback.
 
 #### Collector
-Read: None
-Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
+**Read:** None
+**Write:** Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 
 ### IF-MAP Server
@@ -105,24 +105,24 @@ Port:
   8443
 
 #### Configuration API Server
-Read: Read configuration published by API server, and store in memory (not persistent).
-Write: None
+**Read:** Read configuration published by API server, and store in memory (not persistent).
+**Write:** None
 
 #### Schema Transformer
-Read: None
-Write: Send published configuration.
+**Read:** None
+**Write:** Send published configuration.
 
 #### Service Monitor
-Read: None
-Write: Send published configuration.
+**Read:** None
+**Write:** Send published configuration.
 
 #### Control (BGP)
-Read: None
-Write: Send published configuration.
+**Read:** None
+**Write:** Send published configuration.
 
 #### DNS
-Read: None
-Write: Send published configuration.
+**Read:** None
+**Write:** Send published configuration.
 
 
 ### RabbitMQ
@@ -132,8 +132,8 @@ Port:
   5672
 
 #### Configuration API Server
-Read: Read configuration.
-Write: Write configuration.
+**Read:** Read configuration.
+**Write:** Write configuration.
 
 
 ### Configuration Node Manager (server layer)
