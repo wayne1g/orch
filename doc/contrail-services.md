@@ -1,21 +1,21 @@
-## Configuration Node
+#1 Configuration Node
 
-### Configuration API Server (active/active)
-Mode: Active/Active
-Configuration: /etc/contrail/contrail-api.conf
-Log: Defined in configuration.
-Storage: Cassandra
-Port:
-  8082: REST API for read and write configuration
+##1.1 Configuration API Server (active/active)
+Mode: Active/Active  
+Configuration: /etc/contrail/contrail-api.conf  
+Log: Defined in configuration.  
+Storage: Cassandra  
+Port:  
+  8082: REST API for read and write configuration  
   8084: introspec for debugging
 
-#### Cassandra
-Read: Read configuration.
-Write: Write configuration.
+### Cassandra
+**Read:** Read configuration.  
+**Write:** Write configuration.
 
-#### IF-MAP Server (local)
-Read: None
-Write: Publish configuration. This is driven by the configuration received from RabbitMQ.
+### IF-MAP Server (local)
+**Read:** None  
+**Write:** Publish configuration. This is driven by the configuration received from RabbitMQ.
 
 #### RabbitMQ (default is local, configurable)
 Read: Receive configuration sent from the API server who got user request originally.
