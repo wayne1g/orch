@@ -20,43 +20,43 @@ $ sudo apt-get install contrail-config
 
 ### 1.2 Configure Services
 
-* Cassandra
+* Cassandra  
   No additional configuration is required. By default, Cassandra listens to 127.0.0.1:9160 only.
 
-* Zookeeper
+* Zookeeper  
   No additional Configuration is required.
 
-* RabbitMQ
+* RabbitMQ  
   No additional Configuration is required.
 
-* IP-MAP Server
+* IP-MAP Server  
   Add username and password for the user of control.
   ```
   $ echo "control:control" | sudo tee -a /etc/ifmap-server/basicauthusers.properties
   $ sudo service ifmap-server restart
   ```
 
-* Configuration API Server
+* Configuration API Server  
   No additional Configuration is required.
 
-* Schema Transformer
+* Schema Transformer  
   No additional Configuration is required.
 
-* Service Monitor
+* Service Monitor  
   No additional Configuration is required.
 
-* Discovery
+* Discovery  
   No additional Configuration is required.
 
 ### 1.3 Diagnosis
 
-* Configuration API Server
+* Configuration API Server  
   This shall show the list of projects (tenants).
   ```
   $ curl http://127.0.0.1:8082/projects | python -mjson.tool
   ```
 
-* Discovery
+* Discovery  
   This shall show the list of registered services and the list of clients asking for service info.
   ```
   $ curl http://127.0.0.1:5998/services
