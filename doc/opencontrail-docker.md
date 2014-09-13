@@ -19,15 +19,13 @@ This example is based on OpenContrail 1.06 and Ubuntu 12.04.3.
 ### 2.1 Installation
 
 #### 2.1.1 OpenContrail
-[OpenContrail Installation](contrail-install.md)
+[OpenContrail Installation](opencontrail-install.md)
 
 #### 2.1.2 Docker
 
 ```
-$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 36A1D7869245C895
-0F966E92D8576A8BA88D21E9
-$ echo "deb https://get.docker.io/ubuntu docker main" | sudo tee -a /etc/apt/sou
-rces.list.d/docker.list
+$ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+$ echo "deb https://get.docker.io/ubuntu docker main" | sudo tee -a /etc/apt/sources.list.d/docker.list
 $ sudo apt-get update
 $ sudo apt-get install lxc-docker
 ```
@@ -71,12 +69,9 @@ $ sudo docker run -i -t ubuntu /bin/bash
 Find out the container ID.
 ```
 $ sudo docker ps
-CONTAINER ID        IMAGE               COMMAND             CREATED
-STATUS              PORTS               NAMES
-dccf1ec5a438        ubuntu:latest       "bash"              38 minutes ago
-Up 38 minutes                           naughty_mcclintock
-0996f6040d5d        ubuntu:latest       "bash"              38 minutes ago
-Up 38 minutes                           sleepy_brown
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+dccf1ec5a438        ubuntu:latest       "bash"              38 minutes ago       Up 38 minutes                           naughty_mcclintock
+0996f6040d5d        ubuntu:latest       "bash"              38 minutes ago       Up 38 minutes                           sleepy_brown
 ```
 
 Connect one container to each virtual network.
