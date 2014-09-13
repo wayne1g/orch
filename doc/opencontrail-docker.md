@@ -2,7 +2,7 @@
 ## 1 Overview
 OpenContrail is the infrastructure of building and managing overlay virtual networks. It's capable of connecting Docker contrainers across multiple service nodes into one or separate virtual networks, and connecting virtual networks based on defined policies.
 
-![Docker containers with OpenContrail][opencontrail-docker-figure-1.png]
+![Docker containers with OpenContrail](opencontrail-docker-figure-1.png)
 
 ### 1.1 Connect Containers
 VRouter, the forwarding engine of OpenContrail, is located in host kernel. A pare of veth interfaces (one end in kernel and another end in container) is created to connect vRouter and container.
