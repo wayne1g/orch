@@ -1,68 +1,67 @@
-# scp 10.84.5.112:/cs-shared/images/ubuntu-12.04.3.qcow2 ./
-# glance image-create --name ubuntu-12.04.3 --disk-format qcow2 --container-format bare --min-ram 2048 --file /root/ubuntu.qcow2 --is-public True
+# Install and Configure OpenContrail 1.06
 
-## Tenant "admin", network "public" with public IP subnet, network "data" with internal IP subnet.
+This installation of OpenContrail is based on Ubuntu host installed from ubuntu-12.04.3-server-amd64.iso. Installation option is OpenSSH server. Kernel version is 3.8.0-29-generic #42~precise1-Ubuntu.
 
-# nova boot --flavor m1.large --image ubuntu-12.04.3 --nic net-id=dbebd472-564f-432c-9610-be40ef446561 --nic net-id=643a7137-eb02-4c84-baa8-90f8eb6c5f72,v4-fixed-ip=10.8.1.10 docker-config
-# nova boot --flavor m1.medium --image ubuntu-12.04.3 --nic net-id=dbebd472-564f-432c-9610-be40ef446561 --nic net-id=643a7137-eb02-4c84-baa8-90f8eb6c5f72,v4-fixed-ip=10.8.1.11 docker-compute
+Host name with interface IP has to be properly set in /etc/hosts before start installing OpenContrail.
 
-# config delete vm-interface docker-compute:public --security-group default
-# config delete vm-interface docker-config:public --security-group default
+## 1 Configuration Node
 
-
-
-# Host System
-Ubuntu installation is based on ubuntu-12.04.3-server-amd64.iso.
-Installation server option is OpenSSH server.
-Kernel version is 3.8.0-29-generic #42~precise1-Ubuntu.
-
-# Host Name
-Host name with interface IP has to be properly set in /etc/hosts before start.
-
-
-# Configuration Node
-
-## Install Packages
-
+### 1.1 Install Packages
+```
 $ echo "deb http://ppa.launchpad.net/opencontrail/ppa/ubuntu precise main" | sudo tee -a /etc/apt/sources.list.d/opencontrail.list
 $ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 16BD83506839FE77
 $ echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
 $ curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
 $ sudo apt-get update
-
-$ sudo apt-get install cassandra=1.2.18
-$ sudo apt-get install zookeeperd
-$ sudo apt-get install rabbitmq-server
-$ sudo apt-get install ifmap-server
+$
+$ sudo apt-get install cassandra=1.2.18 zookeeperd rabbitmq-server ifmap-server
 $ sudo apt-get install contrail-config
+```
 
-$ sudo apt-get install contrail-web-controller
+### 1.2 Configure Services
 
+* Cassandra
+  No additional configuration is required. By default, Cassandra listens to 127.0.0.1:9160 only.
 
-## Cassandra
-By default, Cassandra listens to 127.0.0.1:9160 only.
+* Zookeeper
+  No additional Configuration is required.
 
-## Zookeeper
+* RabbitMQ
+  No additional Configuration is required.
 
-## RabbitMQ
+* IP-MAP Server
+  Add username and password for the user of control.
+  ```
+  $ echo "control:control" | sudo tee -a /etc/ifmap-server/basicauthusers.properties
+  $ sudo service ifmap-server restart
+  ```
 
-## IP-MAP Server
+* Configuration API Server
+  No additional Configuration is required.
 
-$ echo "control:control" | sudo tee -a /etc/ifmap-server/basicauthusers.properties
-$ sudo service ifmap-server restart
+* Schema Transformer
+  No additional Configuration is required.
 
-## Configuration API Server
+* Service Monitor
+  No additional Configuration is required.
 
-$ curl http://127.0.0.1:8082/projects | python -mjson.tool
+* Discovery
+  No additional Configuration is required.
 
-## Schema Transformer
+### 1.3 Diagnosis
 
-## Service Monitor
+* Configuration API Server
+  This shall show the list of projects (tenants).
+  ```
+  $ curl http://127.0.0.1:8082/projects | python -mjson.tool
+  ```
 
-## Discovery
-
-$ curl http://127.0.0.1:5998/services
-$ curl http://127.0.0.1:5998/clients
+* Discovery
+  This shall show the list of registered services and the list of clients asking for service info.
+  ```
+  $ curl http://127.0.0.1:5998/services
+  $ curl http://127.0.0.1:5998/clients
+  ```
 
 
 # Analytics Node
