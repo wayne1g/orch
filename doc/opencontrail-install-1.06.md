@@ -162,6 +162,7 @@ $ sudo apt-get install contrail-analytics
   ```
 
 * Collector
+
   The introspec port for collector is 8089.
 
 
@@ -196,8 +197,6 @@ $ sudo apt-get install contrail-control
   $ sudo service contrail-control restart
   ```
 
-* DNS
-
 ### 3.3 Diagnosis
 
 * Control
@@ -212,8 +211,6 @@ $ sudo apt-get install contrail-control
   ```
   curl http://127.0.0.1:8081/analytics/uves/generators | python -mjson.tool
   ```
-
-* DNS
 
 
 ## 4 Compute Node
