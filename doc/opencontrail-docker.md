@@ -7,11 +7,20 @@ OpenContrail is the infrastructure of building and managing overlay virtual netw
 ### 1.1 Connect Containers
 VRouter, the forwarding engine of OpenContrail, is located in host kernel. A pare of veth interfaces (one end in kernel and another end in container) is created to connect vRouter and container.
 
-### 1.2 Separate Virtual Networks
-Separate virtual networks can be created by OpenContrail, to isolate traffic from different groups of containers.
+### 1.2 Group Containers
+Virtual networks can be created by OpenContrail to separate containers into different groups, and isolate traffic between different groups of containers.
 
-### 1.3 Connect Virtual Networks by Policy
-Policy can be created to allow specific traffic flowing between virtual networks.
+### 1.3 Network Policy
+By default, when virtual networks are created, they are all isolated from each other. Network policy needs to be created and attached to virtual networks to allow certain traffic between specific virtual networks.
+
+Protocol, port and virtual network can be configured in the network policy to specify what traffic is allowed between which virtual networks.
+
+### 1.4 Flow Statistics
+OpenContrail is capable of collecting flow statistics and providing REST API interface for users to query. This makes it possible for users to create a feedback loop. By monitoring the traffic, users can check policy enforcement, change container deployment based on traffic load, etc.
+
+### 1.5 Pysical/External Access
+Floating IP is supported by OpenContrail to enable external access for containers. Gateway is required to support this feature.
+
 
 ## 2 Example
 This example is based on OpenContrail 1.06 and Ubuntu 12.04.3.
