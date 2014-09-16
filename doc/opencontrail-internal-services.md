@@ -1,13 +1,13 @@
 #1 Configuration Node
 
-##1.1 Configuration API Server (active/active)
-Mode: Active/Active  
-Configuration: /etc/contrail/contrail-api.conf  
-Log: Defined in configuration.  
-Storage: Configurations in Cassandra  
-Port:  
-  8082: REST API for read and write configuration  
-  8084: introspec for debugging
+##1.1 Configuration API Server
+* Mode: Active/Active
+* Configuration: /etc/contrail/contrail-api.conf
+* Log: Defined in configuration
+* Storage: Configurations in Cassandra
+* Port:
+  * 8082: REST API for read and write configuration
+  * 8084: introspec for debugging
 
 #### Cassandra
 **Read:** Read configuration.  
