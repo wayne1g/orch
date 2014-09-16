@@ -10,23 +10,23 @@
   * 8084: introspec for debugging
 
 #### Cassandra
-* Read: Read configuration.  
+* Read: Read configuration.
 * Write: Write configuration.
 
 #### IF-MAP Server (local)
-* Read: None  
+* Read: None
 * Write: Publish configuration. This is driven by the configuration received from RabbitMQ.
 
 #### RabbitMQ (default is local, configurable)
-* Read: Receive configuration sent from the API server who got user request originally.  
+* Read: Receive configuration sent from the API server who got user request originally.
 * Write: The API server getting user request writes configuration to RabbitMQ for all API servers including itself. Then each API server will publish the configuration to IF-MAP server after receiving from RabbitMQ.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 #### Discovery
-* Read: Get info of other services, like collector.  
+* Read: Get info of other services, like collector.
 * Write: Register itself and IF-MAP server. Send heatbeat. Send request for other services.
 
 
@@ -39,11 +39,11 @@
   * 5998: REST API for register and request services
 
 #### Other Services
-* Read: Recive registration (with VIP in HA case), service request and heartbeat.  
+* Read: Recive registration (with VIP in HA case), service request and heartbeat.
 * Write: Send requested service info.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 
@@ -56,19 +56,19 @@
   * 8087: introspec for debugging
 
 #### IF-MAP Server
-* Read: Receive configuration published by configuration API server.  
+* Read: Receive configuration published by configuration API server.
 * Write: None
 
 #### Configuration API Server
-* Read: Read configuration.  
+* Read: Read configuration.
 * Write: Write configuration.
 
 #### Zookeeper
-* Read: None  
+* Read: None
 * Write: Register, first register, first being active. A callback is invoked if it is active. All other instances of schema transformer are passive and stuck at callback. Once the active one is down, one of the passive will be waked up by callback.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 
@@ -81,19 +81,19 @@
   * 8088: introspec for debugging
 
 #### IF-MAP Server
-* Read: Receive configuration published by configuration API server.  
+* Read: Receive configuration published by configuration API server.
 * Write: None
 
 #### Configuration API Server
-* Read: Read configuration.  
+* Read: Read configuration.
 * Write: Write configuration.
 
 #### Zookeeper
-* Read: None  
+* Read: None
 * Write: Register, first register, first being active. A callback is invoked if it is active. All other instances of schema transformer are passive and stuck at callback. Once the active one is down, one of the passive will be waked up by callback.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 
@@ -105,23 +105,23 @@
   * 8443
 
 #### Configuration API Server
-* Read: Read configuration published by API server, and store in memory (not persistent).  
+* Read: Read configuration published by API server, and store in memory (not persistent).
 * Write: None
 
 #### Schema Transformer
-* Read: None  
+* Read: None
 * Write: Send published configuration.
 
 #### Service Monitor
-* Read: None  
+* Read: None
 * Write: Send published configuration.
 
 #### Control (BGP)
-* Read: None  
+* Read: None
 * Write: Send published configuration.
 
 #### DNS
-* Read: None  
+* Read: None
 * Write: Send published configuration.
 
 
@@ -132,7 +132,7 @@
   * 5672
 
 #### Configuration API Server
-* Read: Read configuration.  
+* Read: Read configuration.
 * Write: Write configuration.
 
 
@@ -140,25 +140,25 @@
 Monitor all config services in this node, send all stats to collector.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
 
 
 ##1.8 User Configuration Flow
-User Request  
--> Original API Server  
--> Local RabbitMQ  
--> All API Servers  
--> Local IF-MAP Server  
+User Request
+-> Original API Server
+-> Local RabbitMQ
+-> All API Servers
+-> Local IF-MAP Server
 -> Schema Transformer and Service Monitor
 
 
 ##1.9 Transformed Configuration Flow
-Schema Transformer  
--> Configuration API Server  
--> Local RabbitMQ  
--> All API Servers  
--> Local IF-MAP Server  
+Schema Transformer
+-> Configuration API Server
+-> Local RabbitMQ
+-> All API Servers
+-> Local IF-MAP Server
 -> Control and DNS
 
 
@@ -186,7 +186,7 @@ Schema Transformer
 * Write: Send queries.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send logs and running stats
 
 
@@ -233,7 +233,7 @@ Schema Transformer
 * Write: Write query result.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send logs and running stats
 
 
@@ -249,53 +249,66 @@ One Redis server supports query engine and caches UVEs.
 Monitor all analytics services in this node, send all stats to collector.
 
 #### Collector
-* Read: None  
-* Write: Send positive (updates) and negtive (error, failures) logs, and running stats.
+* Read: None
+* Write: Send logs and running stats.
 
 
 #3 Database
 
 ##3.1 Cassandra
-
-Cluster size is the same as Replication factor.
-Write and read levels are Quorum.
-
-With 2n+1 cluster/replication-factor, reads are consistent.
-Survive the loss of n nodes.
-Really read from and write to n+1 nodes (quorum).
-Each node holds 100% of data.
-
+Cluster size is the same as Replication factor. Write and read levels are Quorum. With 2n+1 cluster/replication-factor, reads are consistent. Survive the loss of n nodes. Really read from and write to n+1 nodes (quorum). Each node holds 100% of data.
 
 
 ##3.2 Database Node Manager
+Monitor all database services in this node, send all stats to collector.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send logs and running stats.
 
 
 ##3.3 Zookeeper
 
+#### Schema Transformer
+* Master election
+* Allocate route target.
+
+#### Configuration API Server
+* Allocate IP address.
+* Check fq-name in case 2 objects are created with the same name in fly.
+* Security group ID and virtual network ID used by BGP/XMPP.
+
+#### Service Monitor
+* Master election
+
 
 #4 Control Node
 
 ##4.1 Control
+* Mode: Active/Active
+* Configuration: /etc/contrail/contrail-control.conf
+* Log: Defined in configuration
+* Storage:
+* Port:
+  * 179: BGP
+  * 5269: XMPP server for vRouter agent to connect to
+  * 8083: introspec for debugging
 
 #### Discovery
-* Read: Receive info of requested services.  
+* Read: Receive info of requested services.
 * Write: Request service info, eg. IF-MAP server.
 
 #### IF-MAP Server
-* Read: Receive configurations published by configuration API server.  
+* Read: Receive configurations published by configuration API server.
 * Write: Subscribe to receive configurations.
 
 #### vRouger Agent
-* Read: Receive XMPP messages.  
+* Read: Receive XMPP messages.
 * Write: Send XMPP messages.
 
 #### BGP Peers
-* Read: Receive BGP.  
-* Write: Send BGP.
+* Read: Receive BGP messages.
+* Write: Send BGP messages.
 
 #### Collector
 * Read: None
@@ -306,15 +319,15 @@ Each node holds 100% of data.
 This is the front-end of name resolving. Host native named is the back-end.
 
 #### Discovery
-* Read: Receive info of requested services.  
+* Read: Receive info of requested services.
 * Write: Request service info, eg. IF-MAP server.
 
 #### IF-MAP Server
-* Read: Receive configurations published by configuration API server.  
+* Read: Receive configurations published by configuration API server.
 * Write: Subscribe to receive configurations.
 
 #### vRouger Agent
-* Read: Receive XMPP messages.  
+* Read: Receive XMPP messages.
 * Write: Send XMPP messages.
 
 #### Collector
@@ -323,32 +336,45 @@ This is the front-end of name resolving. Host native named is the back-end.
 
 
 ##4.3 Control Node Manager
+Monitor all control services in this node, send all stats to collector.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send logs and running stats.
 
 
 #5 Compute Node
 
 ##5.1 vRouter Agent
+* Mode: Active/Active
+* Configuration: /etc/contrail/contrail-control.conf
+* Log: Defined in configuration
+* Storage:
+* Port:
+  * 8085: introspec for debugging
 
 #### Discovery
-* Read: Receive info of requested services.  
+* Read: Receive info of requested services.
 * Write: Request service info, eg. control server.
 
+#### Control
+* Read: XMPP messages.
+* Write: XMPP messages.
+
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send logs and running stats.
 
 
 ##5.2 vRouter
-In kernel.
+Kernel Module
+
 
 ##5.3 vRouter Node Manager
+Monitor all vRouter services in this node, send all stats to collector.
 
 #### Collector
-* Read: None  
+* Read: None
 * Write: Send logs and running stats.
 
 
