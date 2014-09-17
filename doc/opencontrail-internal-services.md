@@ -346,8 +346,7 @@ Monitor all control services in this node, send all stats to collector.
 #5 Compute Node
 
 ##5.1 vRouter Agent
-* Mode: Active/Active
-* Configuration: /etc/contrail/contrail-control.conf
+* Configuration: /etc/contrail/contrail-vrouter-agent.conf
 * Log: Defined in configuration
 * Storage:
 * Port:
