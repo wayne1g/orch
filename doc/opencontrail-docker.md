@@ -25,10 +25,10 @@ By default, virtual networks are isolated. Routes of containers in one virtual n
 
 Protocol, port and virtual network can be configured in the network policy to specify what traffic is allowed between which virtual networks.
 
-### 1.5 Flow Statistics
+### 1.5 Flow statistics
 OpenContrail is capable of collecting flow statistics and providing REST API interface for users to query. This makes it possible for users to create a feedback loop. By monitoring the traffic, users can check policy enforcement, change container deployment based on traffic load, etc.
 
-### 1.6 External/Public Access
+### 1.6 External/Public access
 Floating IP is supported by OpenContrail to enable external/public access for containers. Gateway is required to support this feature.
 
 
@@ -54,21 +54,21 @@ Download Ubuntu image and check if it works.
 $ sudo docker run -i -t ubuntu /bin/bash
 ```
 
-#### 2.1.3 Utility of Netns
+#### 2.1.3 Utility of opencontrail-netns
 ```
 $ git clone https://github.com/pedro-r-marques/opencontrail-netns.git
 ```
 This utility does all configurations to connect vRouter and container.
 
-#### 2.1.4 Utlity of Config
+#### 2.1.4 Utlity of config
 ```
 $ git clone https://github.com/tonyliu0592/orch.git
 ```
 This utility does OpenContrail configurations. Update `config` with correct settings.
 
-### 2.2 Connect Container to Virtual Network
+### 2.2 Connect container to virtual network
 
-#### Create Virtual Networks
+#### Create virtual networks
 Create two virtual networks, "red" and "green", in tenant "admin". Assume tenant "admin" is already created.
 ```
 $ cd orch
@@ -77,14 +77,14 @@ $ ./config add network red --ipam ipam-default --subnet 192.168.10.0/24
 $ ./config add network green --ipam ipam-default --subnet 192.168.20.0/24
 ```
 
-#### Create Containers
+#### Create containers
 Create two containers. Type CTRL-p and CTRL-q to exit container and keep it running.
 ```
 $ sudo docker run -i -t ubuntu /bin/bash
 $ sudo docker run -i -t ubuntu /bin/bash
 ```
 
-#### Connect Container to Virtual Network
+#### Connect container to virtual network
 Find out the container ID.
 ```
 $ sudo docker ps
@@ -93,7 +93,7 @@ dccf1ec5a438        ubuntu:latest       "bash"              38 minutes ago      
 0996f6040d5d        ubuntu:latest       "bash"              38 minutes ago       Up 38 minutes                           sleepy_brown
 ```
 
-Connect one container to each virtual network.
+Connect one container to each virtual network respectively.
 ```
 $ cd ../opencontrail-netns/opencontrail_netns
 $ python docker.py -s <API server> -n red --project default-domain:admin --start dccf1ec5a438
@@ -102,8 +102,8 @@ $ python docker.py -s <API server> -n green --project default-domain:admin --sta
 
 Now, two containers are connected to two virtual networks respectively. Policy needs to be created and attached to two virtual networks to allow traffic flow between each other.
 
-#### Policy
-Create a pass-all policy and attach to two virtual networks.
+#### Connect virtual networks by network policy
+Create a policy to pass all traffic and attach to two virtual networks.
 ```
 $ cd ../../orch
 $ ./config add policy policy-default
@@ -111,7 +111,7 @@ $ ./config add network red --policy policy-default
 $ ./config add network green --policy policy-default
 ```
 
-Attach to container and test connection.
+Login container and test connection.
 ```
 $ sudo docker attach dccf1ec5a438
 root@dccf1ec5a438:/# ip addr show veth0
@@ -127,6 +127,5 @@ PING 192.168.20.253 (192.168.20.253) 56(84) bytes of data.
 64 bytes from 192.168.20.253: icmp_seq=2 ttl=64 time=0.066 ms
 
 ```
-
 
 
