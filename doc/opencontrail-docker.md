@@ -4,22 +4,32 @@ OpenContrail is the infrastructure of building and managing overlay virtual netw
 
 ![Docker containers with OpenContrail](opencontrail-docker-figure-1.png)
 
-### 1.1 Connect Containers
-VRouter, the forwarding engine of OpenContrail, is located in host kernel. A pare of veth interfaces (one end in kernel and another end in container) is created to connect vRouter and container.
+### 1.1 vRouter and virtual network
+Vrouter is the forwarding engine of OpenContrail. It's located in the host kernel. When a virtual network is created, a VRF is also created and associated to the virtual network. When vRouter receives packets, it determines which VRF packets will be sent to. Then vRouter looks up route in VRF, gets next-hop, and sends packets to it.
 
-### 1.2 Group Containers
-Virtual networks can be created by OpenContrail to separate containers into different groups, and isolate traffic between different groups of containers.
+### 1.2 Attach container to virtual network
+To attach container to virtual network,
+* create a tunnel with two veth interfaces (one end in kernel and another end in container),
+* attach veth interface in kernel to the VRF of virtual network,
+* allocate an IP address to this interface.
 
-### 1.3 Network Policy
-By default, when virtual networks are created, they are all isolated from each other. Network policy needs to be created and attached to virtual networks to allow certain traffic between specific virtual networks.
+DHCP server is provided by vRouter. After attach container to the virtual network, running DHCP client in the container will get the allocated IP address for the veth interface.
+
+A /32 interface route of allocated IP address is also added into the VRF. The next-hop is the veth interface in kernel.
+
+### 1.3 Connect containers in the same virtual network
+The interface route in each VRF will be advertised to all VRFs of the same virtual network in other servers. This is done by Contrail control component running BGP. Eventually, each VRF will have all routes of the same virtual network.
+
+### 1.4 Connect virtual networks by network policy
+By default, virtual networks are isolated. Routes of containers in one virtual network are not advertised to any other virtual network. To connect virtual networks, network policy has to be defined and attached to virtual networks.
 
 Protocol, port and virtual network can be configured in the network policy to specify what traffic is allowed between which virtual networks.
 
-### 1.4 Flow Statistics
+### 1.5 Flow Statistics
 OpenContrail is capable of collecting flow statistics and providing REST API interface for users to query. This makes it possible for users to create a feedback loop. By monitoring the traffic, users can check policy enforcement, change container deployment based on traffic load, etc.
 
-### 1.5 Pysical/External Access
-Floating IP is supported by OpenContrail to enable external access for containers. Gateway is required to support this feature.
+### 1.6 External/Public Access
+Floating IP is supported by OpenContrail to enable external/public access for containers. Gateway is required to support this feature.
 
 
 ## 2 Example
