@@ -3,7 +3,12 @@ import os
 import sys
 import time
 import uuid
-import novaclient.v1_1.client
+config_nova_client = False
+try:
+    import novaclient.v1_1.client
+    config_nova_client = True
+except:
+    pass
 from vnc_api import vnc_api
 
 
@@ -1701,10 +1706,11 @@ class ConfigClient():
     def __init__(self, username, password, tenant, api_server, region):
         self.vnc = vnc_api.VncApi(username = username, password = password,
                 tenant_name = tenant, api_server_host = api_server)
-        self.nova = novaclient.v1_1.client.Client(username = username,
-                api_key = password, project_id = tenant,
-                region_name = region,
-                auth_url = 'http://%s:35357/v2.0' %(api_server))
+        if config_nova_client:
+            self.nova = novaclient.v1_1.client.Client(username = username,
+                    api_key = password, project_id = tenant,
+                    region_name = region,
+                    auth_url = 'http://%s:35357/v2.0' %(api_server))
         self.tenant = self.vnc.project_read(
                 fq_name = ['default-domain', tenant])
 
