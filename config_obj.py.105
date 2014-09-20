@@ -1371,8 +1371,8 @@ class ConfigInterfaceRouteTable():
         routes = obj.get_interface_route_table_routes()
         if not routes:
             routes = vnc_api.RouteTableType()
-            obj.set_interface_route_table_routes(routes)
         routes.add_route(vnc_api.RouteType(prefix = prefix))
+        obj.set_interface_route_table_routes(routes)
 
     def route_del(self, obj, prefix):
         routes = obj.get_interface_route_table_routes()
@@ -1381,6 +1381,7 @@ class ConfigInterfaceRouteTable():
         for item in routes.get_route():
             if (item.get_prefix() == prefix):
                 routes.delete_route(item)
+        obj.set_interface_route_table_routes(routes)
 
     def add(self, name, route = None):
         create = False
