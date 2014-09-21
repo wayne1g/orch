@@ -95,6 +95,7 @@ dccf1ec5a438        ubuntu:latest       "bash"              38 minutes ago      
 
 Connect one container to each virtual network respectively.
 ```
+$ sudo mkdir -p /var/run/netns
 $ cd ../opencontrail-netns/opencontrail_netns
 $ python docker.py -s <API server> -n red --project default-domain:admin --start dccf1ec5a438
 $ python docker.py -s <API server> -n green --project default-domain:admin --start 0996f6040d5d
