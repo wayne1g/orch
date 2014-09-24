@@ -1,16 +1,17 @@
-# Goal
+#Goal
 To build an integrated solution for end user.
 * Create a service with vSRX in the service chain.
 * Base on the official release of vSRX, no manual configuration is required.
 * One single step for end user to create and provisioning the service.
-# 1. vSRX and OpenStack
+
+#1 vSRX and OpenStack
 vSRX (Firefly Perimeter) is the virtualization of SRX service gateway provided by Juniper. This is the product page.
 http://www.juniper.net/us/en/products-services/security/firefly-perimeter/#overview
 
-The KVM-based vSRX is packed in JVA container. It's available on this link for download.
+The KVM-based vSRX is packed in JVA container. It's available on this link to download.
 http://www.juniper.net/support/downloads/?p=firefly#sw
 
-## 1.1 Add vSRX image
+##1.1 Add vSRX image
 * Download vSRX JVA container and unpack it.
 ```
 # chmod 755 junos-vsrx-12.1X46-D20.5-domestic.jva
@@ -21,20 +22,24 @@ http://www.juniper.net/support/downloads/?p=firefly#sw
 # cd junos-vsrx-12.1X46-D20.5-domestic-1400526077
 # glance --os-username <admin username> --os-password <admin password> --os-tenant-name admin --os-auth-url http://127.0.0.1:5000/v2.0/ image-create --name "vSRX 12.1X46-D20.5" --disk-format qcow2 --container-format bare --is-public True --file junos-vsrx-12.1X46-D20.5-domestic.img 
 ```
-## 1.2 Launch vSRX instance
-The minimum resource required by vSRX is 2 vCPUs and 1GB memory.
-Assume a network is already configured in tennant demo.
+
+##1.2 Launch vSRX instance
+The minimum resource required by vSRX is 2 vCPUs and 1GB memory. Assume a network is already configured in tennant demo.
 ```
 # nova --os-username <admin username> --os-password <admin password> --os-tenant-name demo --os-auth-url http://127.0.0.1:5000/v2.0/ boot vsrx --flavor m1.medium --image "vSRX 12.1X46-D20.5" --nic net-id=<network UUID>
 ```
 Now, vSRX instance can be accessed by console from OpenStack Web UI.
-## 1.3 Provisioning vSRX
-At the first time when vSRX is launched, there is no configuration applied. Normally, user needs to login vSRX from console to do the initial configuration, like root user authentication and networking interface. After that, any further configuration can be done by mulitple options, management Web on vSRX, SSH, NETCONF, etc.
-### 1.3.1 Metadata
+
+##1.3 Provisioning vSRX
+At the first time when vSRX is launched, there is no configuration applied. Normally, user needs to login vSRX from console to do the initial configuration, like root user authentication and networking interface. After that, any further configuration can be done by mulitple options, like management Web on vSRX, SSH, NETCONF, etc.
+
+###1.3.1 Metadata
 This is the standard option for OpenStack to pass data into VM after launching it. VM needs to read from http://169.254.169.254 to get metadata. This is not supported by vSRX yet.
-### 1.3.2 File injection
+
+###1.3.2 File injection
 This is another option for OpenStack to transfer data into VM. Potentially, a configuration file can be injected into vSRX and get applied. This is not supported by vSRX yet.
-### 1.3.3 Sysinfo
+
+###1.3.3 Sysinfo
 This is the only option supported by vSRX to get data for initial configuration. But it's not supported by OpenStack. To make this work with OpenStack, one additionaly line needs to be added into function `get_guest_config_sysinfo()` in `class LibvirtDriver()` in nova/virt/libvirt/driver.py. And service openstack-nova-compute needs to be restarted to apply the update.
 ```
          sysinfo.system_serial = self.get_host_uuid()
@@ -51,10 +56,13 @@ The root password `rootpw` is the hashed string of 'passWD'.
 This update will add new entry into /var/lib/nova/instances/<uuid>/libvirt.xml for libvirt to create the VM. There is a script in vSRX to read this sysinfo and apply it to configuration. This is the automatic initial provistioning without manual configuration.
 
 With this initial configuration, network, SSH and web based management are enabled. To provisition vSRX by NETCONF, two more configurations are required, [ system services netconf ssh ] and [ security zones security-zone trust interfaces ge-0/0/0.0 host-inbound-traffic system-services all ]. They can be configured by SSH.
-# 2. vSRX and Contrail
+
+#2 vSRX and Contrail
 vSRX can be launched by Contrail service monitor as a service in service chain.
-# 3. Demo of NAT
-## 3.1 Overview
+
+#3 Example of NAT
+
+##3.1 Overview
 ![Demo topo](vsrx-nat-figure-1.png)
 * A tenant space is allocated in the cloud for each customer.
 * An access virtual network is created in each tenant and extened for customer access by gateway.
@@ -70,7 +78,7 @@ https://github.com/tonyliu0592/orch
 # git clone https://github.com/tonyliu0592/orch.git
 # cd orch
 # git clone https://github.com/leopoul/ncclient.git
-# mv ncclinet.git ncclient.git
+# mv ncclinet ncclient.git
 # mv ncclient.git/ncclient ./
 # rm -fr ncclient.git
 ```
