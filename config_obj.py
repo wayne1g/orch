@@ -6,9 +6,9 @@ import uuid
 from vnc_api import vnc_api
 try:
     import novaclient.v1_1.client
-    config_nova_client = True
+    config_nova = True
 except:
-    config_nova_client = False
+    config_nova = False
 
 
 class ConfigVirtualDns():
@@ -814,11 +814,17 @@ class ConfigFloatingIpPool():
         list = self.vnc.floating_ip_pools_list()['floating-ip-pools']
         return list
 
-    def obj_get(self, name):
+    def obj_get(self, name, network = None):
         for item in self.obj_list():
-            if (item['fq_name'][1] == self.tenant.name) and \
-                    (name == '%s:%s' %(item['fq_name'][2], item['fq_name'][3])):
-                return self.vnc.floating_ip_pool_read(id = item['uuid'])
+            if network:
+                if (item['fq_name'][1] == self.tenant.name) and \
+                        (item['fq_name'][2] == network) and \
+                        (item['fq_name'][3] == name):
+                    return self.vnc.floating_ip_pool_read(id = item['uuid'])
+            else:
+                if (item['fq_name'][1] == self.tenant.name) and \
+                        (item['fq_name'][3] == name):
+                    return self.vnc.floating_ip_pool_read(id = item['uuid'])
 
     def prop_subnet_show(self, obj):
         print '[P] Subnet:'
@@ -863,33 +869,41 @@ class ConfigFloatingIpPool():
         else:
             for item in self.obj_list():
                 if (item['fq_name'][1] == self.tenant.name):
-                    print '    %s:%s' %(item['fq_name'][2], item['fq_name'][3])
+                    print '    %s in network %s' \
+                            %(item['fq_name'][2], item['fq_name'][3])
 
-    def add(self, name):
-        pool_name = name.split(':')
+    def add(self, name, network):
+        if not name:
+            print 'ERROR: The name of floating IP pool is not specified!'
+            return
+        if not network:
+            print 'ERROR: Network is not specified!'
+            return
         try:
             net_obj = self.vnc.virtual_network_read(
-                    fq_name = ['default-domain', self.tenant.name,
-                    pool_name[0]])
+                    fq_name = ['default-domain', self.tenant.name, network])
         except Exception as e:
             print 'ERROR: %s' %(str(e))
             return
-        obj = vnc_api.FloatingIpPool(name = pool_name[1], parent_obj = net_obj)
+        obj = vnc_api.FloatingIpPool(name = name, parent_obj = net_obj)
         try:
             self.vnc.floating_ip_pool_create(obj)
+            self.tenant.add_floating_ip_pool(obj)
+            self.vnc.project_update(self.tenant)
         except Exception as e:
             print 'ERROR: %s' %(str(e))
-            return
-        self.tenant.add_floating_ip_pool(obj)
-        self.vnc.project_update(self.tenant)
 
     def fip_delete(self, pool_obj):
         pass
 
-    def delete(self, name):
-        obj = self.obj_get(name)
+    def delete(self, name, network):
+        if not name:
+            print 'ERROR: The name of floating IP pool is not specified!'
+            return
+        obj = self.obj_get(name, network)
         if not obj:
-            print 'ERROR: Object %s is not found!' %(name)
+            print 'ERROR: Floating IP pool %s in network %s is not found!' \
+                    %(name, network)
             return
         if obj.get_floating_ips():
             print 'ERROR: There are allocated floating IPs!'
@@ -1707,7 +1721,7 @@ class ConfigClient():
     def __init__(self, username, password, tenant, api_server, region):
         self.vnc = vnc_api.VncApi(username = username, password = password,
                 tenant_name = tenant, api_server_host = api_server)
-        if config_nova_client:
+        if config_nova:
             self.nova = novaclient.v1_1.client.Client(username = username,
                     api_key = password, project_id = tenant,
                     region_name = region,
