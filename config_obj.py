@@ -3,19 +3,17 @@ import os
 import sys
 import time
 import uuid
-config_nova_client = False
+from vnc_api import vnc_api
 try:
     import novaclient.v1_1.client
     config_nova_client = True
 except:
-    pass
-from vnc_api import vnc_api
+    config_nova_client = False
 
 
 class ConfigVirtualDns():
     def __init__(self, client):
         self.vnc = client.vnc
-        self.nova = client.nova
         self.tenant = client.tenant
 
     def obj_list(self):
@@ -288,93 +286,105 @@ class ConfigPolicy():
                 if (item['fq_name'][1] == self.tenant.name):
                     print '    %s' %(item['fq_name'][2])
 
-    def add(self, name, direction = None, protocol = None, src_net = None,
-            dst_net = None, src_port = None, dst_port = None, action = None,
-            service = None):
+    def rule_add(self, arg_list):
+        direction = None
+        protocol = None
+        src_net_list = []
+        dst_net_list = []
+        src_port_list = []
+        dst_port_list = []
+        action = None
+        service_list = []
+        for arg in arg_list:
+            arg_name = arg.split('=')[0]
+            arg_val = arg.split('=')[1]
+            if (arg_name == 'direction'):
+                direction = arg_val
+            elif (arg_name == 'protocol'):
+                protocol = arg_val
+            elif (arg_name == 'src-net'):
+                net = 'default-domain:%s:%s' %(self.tenant.name, arg_val)
+                src_net_list.append(vnc_api.AddressType(virtual_network = net))
+            elif (arg_name == 'dst-net'):
+                net = 'default-domain:%s:%s' %(self.tenant.name, arg_val)
+                dst_net_list.append(vnc_api.AddressType(virtual_network = net))
+            elif (arg_name == 'src-port'):
+                if (arg_val == 'any'):
+                    src_port_list.append(vnc_api.PortType(
+                            start_port = -1, end_port = -1))
+                else:
+                    s_e = arg_val.split(':')
+                    src_port_list.append(vnc_api.PortType(
+                            start_port = int(s_e[0]), end_port = int(s_e[1])))
+            elif (arg_name == 'dst-port'):
+                if (arg_val == 'any'):
+                    src_port_list.append(vnc_api.PortType(
+                            start_port = -1, end_port = -1))
+                else:
+                    s_e = arg_val.split(':')
+                    src_port_list.append(vnc_api.PortType(
+                            start_port = int(s_e[0]), end_port = int(s_e[1])))
+            elif (arg_name == 'action'):
+                action = arg_val
+            elif (arg_name == 'service'):
+                service_list.append('default-domain:%s:%s' \
+                        %(self.tenant.name, arg_val))
+ 
         rule = vnc_api.PolicyRuleType()
-        if direction:
-            rule.set_direction(direction)
-        else:
-            rule.set_direction('<>')
-        if protocol:
-            rule.set_protocol(protocol)
-        else:
-            rule.set_protocol('any')
-
-        net_list = []
-        if src_net:
-            for item in src_net:
-                net = 'default-domain:%s:%s' %(self.tenant.name, item)
-                net_list.append(vnc_api.AddressType(virtual_network = net))
-        else:
-            net_list.append(vnc_api.AddressType(virtual_network = 'any'))
-        rule.set_src_addresses(net_list)
-
-        net_list = []
-        if dst_net:
-            for item in dst_net:
-                net = 'default-domain:%s:%s' %(self.tenant.name, item)
-                net_list.append(vnc_api.AddressType(virtual_network = net))
-        else:
-            net_list.append(vnc_api.AddressType(virtual_network = 'any'))
-        rule.set_dst_addresses(net_list)
-
-        port_list = []
-        if src_port:
-            for item in src_port:
-                if (item == 'any'):
-                    port_list.append(vnc_api.PortType(
-                            start_port = -1, end_port = -1))
-                else:
-                    s_e = item.split(':')
-                    port_list.append(vnc_api.PortType(
-                            start_port = int(s_e[0]), end_port = int(s_e[1])))
-        else:
-            port_list.append(vnc_api.PortType(start_port = -1, end_port = -1))
-        rule.set_src_ports(port_list)
-
-        port_list = []
-        if dst_port:
-            for item in dst_port:
-                if (item == 'any'):
-                    port_list.append(vnc_api.PortType(
-                            start_port = -1, end_port = -1))
-                else:
-                    s_e = item.split(':')
-                    port_list.append(vnc_api.PortType(
-                            start_port = int(s_e[0]), end_port = int(s_e[1])))
-        else:
-            port_list.append(vnc_api.PortType(start_port = -1, end_port = -1))
-        rule.set_dst_ports(port_list)
-
-        if action:
-            if (action == 'service'):
-                service_list = []
-                for item in service:
-                    service_list.append('default-domain:%s:%s' \
-                        %(self.tenant.name, item))
-                action_list = vnc_api.ActionListType(
-                        apply_service = service_list)
-            else:
-                action_list = vnc_api.ActionListType(
-                        simple_action = action)
-        else:
+        if not direction:
+            direction = '<>'
+        rule.set_direction(direction)
+        if not protocol:
+            protocol = 'any'
+        rule.set_protocol(protocol)
+        if not src_net_list:
+            src_net_list.append(vnc_api.AddressType(virtual_network = 'any'))
+        rule.set_src_addresses(src_net_list)
+        if not dst_net_list:
+            dst_net_list.append(vnc_api.AddressType(virtual_network = 'any'))
+        rule.set_dst_addresses(dst_net_list)
+        if not src_port_list:
+            src_port_list.append(vnc_api.PortType(
+                    start_port = -1, end_port = -1))
+        rule.set_src_ports(src_port_list)
+        if not dst_port_list:
+            dst_port_list.append(vnc_api.PortType(
+                    start_port = -1, end_port = -1))
+        rule.set_dst_ports(dst_port_list)
+        if not action:
             action_list = vnc_api.ActionListType(simple_action = 'pass')
+        elif (action == 'service'):
+            action_list = vnc_api.ActionListType(apply_service = service_list)
+        else:
+            action_list = vnc_api.ActionListType(simple_action = action)
         rule.set_action_list(action_list)
+        return rule
+
+    def add(self, name, rule_arg_list):
+        rule_list = []
+        if not rule_arg_list:
+            rule = self.rule_add([])
+            rule_list.append(rule)
+        else:
+            for rule_arg in rule_arg_list:
+                rule = self.rule_add(rule_arg.split(','))
+                rule_list.append(rule)
 
         obj = self.obj_get(name = name)
         if obj:
             rules = obj.get_network_policy_entries()
             if not rules:
-                rules = vnc_api.PolicyEntriesType(policy_rule = [rule])
+                rules = vnc_api.PolicyEntriesType(policy_rule = rule_list)
             else:
-                rules.add_policy_rule(rule)
+                for item in rule_list:
+                    rules.add_policy_rule(item)
+            obj.set_network_policy_entries(rules)
             try:
                 self.vnc.network_policy_update(obj)
             except Exception as e:
                 print 'ERROR: %s' %(str(e))
         else:
-            rules = vnc_api.PolicyEntriesType(policy_rule = [rule])
+            rules = vnc_api.PolicyEntriesType(policy_rule = rule_list)
             obj = vnc_api.NetworkPolicy(name = name,
                     parent_obj = self.tenant,
                     network_policy_entries = rules)
@@ -383,21 +393,24 @@ class ConfigPolicy():
             except Exception as e:
                 print 'ERROR: %s' %(str(e))
 
-    def rule_del(self, obj, index):
-        rules = obj.get_network_policy_entries()
-        if not rules:
-            return
-        rule = rules.get_policy_rule()[index - 1]
-        rules.delete_policy_rule(rule)
-        self.vnc.network_policy_update(obj)
-
-    def delete(self, name, rule = None):
+    def delete(self, name, rule_arg_list):
         obj = self.obj_get(name)
         if not obj:
             print 'ERROR: Object %s is not found!' %(name)
             return
-        if rule:
-            self.rule_del(obj, int(rule))
+        if rule_arg_list:
+            rules = obj.get_network_policy_entries()
+            if not rules:
+                return
+            for rule_arg in rule_arg_list:
+                for arg in rule_arg.split(','):
+                    arg_name = arg.split('=')[0]
+                    arg_val = arg.split('=')[1]
+                    if (arg_name == 'index'):
+                        rule = rules.get_policy_rule()[int(arg_val) - 1]
+                        rules.delete_policy_rule(rule)
+            obj.set_network_policy_entries(rules)
+            self.vnc.network_policy_update(obj)
         else:
             try:
                 self.vnc.network_policy_delete(fq_name = ['default-domain',
@@ -934,7 +947,7 @@ class ConfigServiceTemplate():
         obj = vnc_api.ServiceTemplate(name = name)
         properties = vnc_api.ServiceTemplateType(service_mode = mode,
                 service_type = type, image_name = image, flavor = flavor,
-                ordered_interfaces = True)
+                ordered_interfaces = True, availability_zone_enable = True)
         if scale:
             properties.set_service_scaling(scale)
             for item in interface_type:
@@ -1699,6 +1712,8 @@ class ConfigClient():
                     api_key = password, project_id = tenant,
                     region_name = region,
                     auth_url = 'http://%s:35357/v2.0' %(api_server))
+        else:
+            self.nova = None
         self.tenant = self.vnc.project_read(
                 fq_name = ['default-domain', tenant])
 

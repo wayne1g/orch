@@ -37,95 +37,97 @@ class ConfigShell():
         sub_parser = subparsers.add_parser('vdns', help = 'Virtual DNS')
         sub_parser.set_defaults(obj_class = ConfigVirtualDns,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--domain-name', metavar = '<domain name>',
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
+        sub_parser.add_argument('--domain-name', metavar = '<name>',
                 help = 'The name of DNS domain')
         sub_parser.add_argument('--record-order',
                 choices = ['fixed', 'random', 'round-robin'],
-                default = 'random',
-                metavar = 'random | fixed | round-robin',
-                help = 'The order of DNS records')
-        sub_parser.add_argument('--next-dns', metavar = '<next DNS>',
-                help = 'The name of next virtual DNS service or the IP address of DNS server reachable by fabric.')
+                default = 'random', metavar = '<order>',
+                help = 'The order of DNS records. ' \
+                       '[ random | fixed | round-robin ]')
+        sub_parser.add_argument('--next-dns', metavar = '<name>',
+                help = 'The name of next virtual DNS service or ' \
+                       'the IP address of DNS server reachable by fabric.')
 
         sub_parser = subparsers.add_parser('ipam', help = 'Network IPAM')
         sub_parser.set_defaults(obj_class = ConfigIpam,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
         sub_parser.add_argument('--dns-type',
                 choices = ['none', 'default', 'tenant', 'virtual'],
-                metavar = 'none | default | virtual | tenant',
-                help = 'The type of DNS service')
-        sub_parser.add_argument('--virtual-dns', metavar = '<virtual DNS>',
+                metavar = '<type>',
+                help = 'The type of DNS service. ' \
+                       '[ none | default | virtual | tenant ]')
+        sub_parser.add_argument('--virtual-dns', metavar = '<name>',
                 help = 'The name of virtual DNS service')
-        sub_parser.add_argument('--tenant-dns', metavar = '<tenant DNS>',
+        sub_parser.add_argument('--tenant-dns', metavar = '<address>',
                 action = 'append',
                 help = 'The address of tenant DNS')
-        sub_parser.add_argument('--domain-name', metavar = '<domain name>',
+        sub_parser.add_argument('--domain-name', metavar = '<name>',
                 help = 'The name of DNS domain')
-        sub_parser.add_argument('--ntp-server', metavar = '<NTP server>',
+        sub_parser.add_argument('--ntp-server', metavar = '<address>',
                 help = 'The address of NTP server')
 
         sub_parser = subparsers.add_parser('policy', help = 'Network Policy')
         sub_parser.set_defaults(obj_class = ConfigPolicy,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--rule', metavar = '<rule index>',
-                help = 'Rule index')
-        sub_parser.add_argument('--direction', choices = ['<>', '>'],
-                metavar = '<> | >', help = 'Direction')
-        sub_parser.add_argument('--protocol',
-                choices = ['any', 'tcp', 'udp', 'icmp'],
-                metavar = 'any | tcp | udp | icmp', help = 'Protocol')
-        sub_parser.add_argument('--src-net', action = 'append',
-                metavar = '<source network>', help = 'Source network')
-        sub_parser.add_argument('--dst-net', action = 'append',
-                metavar = '<destination network>', help = 'Destination network')
-        sub_parser.add_argument('--src-port', action = 'append', type = str,
-                metavar = '<start:end>', help = 'The range of source port')
-        sub_parser.add_argument('--dst-port', action = 'append', type = str,
-                metavar = '<start:end>', help = 'The range of destination port')
-        sub_parser.add_argument('--action',
-                choices = ['pass', 'deny', 'drop', 'reject', 'alert',
-                'log', 'service'],
-                metavar = 'pass | deny | drop | reject | alert | log | service', help = 'Action')
-        sub_parser.add_argument('--service', action = 'append',
-                metavar = '<service>', help = 'Service')
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
+        sub_parser.add_argument('--rule', action = 'append',
+                metavar = '<arguments>',
+                help = 'Policy rule. ' \
+                       'direction=[ <> | > ],' \
+                       'protocol=[ any | tcp | udp | icmp ],' \
+                       'src-net=[ <name> | any ],' \
+                       'dst-net=[ <name> | any ],' \
+                       'src-port=[ <start>:<end> | any ],' \
+                       'dst-port=[ <start>:<end> | any ],' \
+                       'action=[ pass | deny | drop | reject | alert | ' \
+                               'log | service ],' \
+                       'service=<name>,' \
+                       'index=<index>')
 
         sub_parser = subparsers.add_parser('security-group',
                 help = 'Security Group')
         sub_parser.set_defaults(obj_class = ConfigSecurityGroup,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--rule', metavar = '<rule index>',
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
+        sub_parser.add_argument('--rule', metavar = '<index>',
                 help = 'Rule index')
-        sub_parser.add_argument('--direction', choices = ['ingress', 'egress'],
-                metavar = 'ingress | egress', help = 'Direction')
+        sub_parser.add_argument('--direction',
+                choices = ['ingress', 'egress'],
+                metavar = '<direction>',
+                help = 'Direction. [ ingress | egress ]')
         sub_parser.add_argument('--protocol',
                 choices = ['any', 'tcp', 'udp', 'icmp'],
-                metavar = 'any | tcp | udp | icmp', help = 'Protocol')
+                metavar = '<protocol>',
+                help = 'Protocol. [ any | tcp | udp | icmp ]')
         sub_parser.add_argument('--address', action = 'append',
-                metavar = '<prefix/length>', help = 'Remote IP address')
+                metavar = '<prefix>/<length>', help = 'Remote IP address.')
         sub_parser.add_argument('--port', action = 'append', type = str,
-                metavar = '<start:end>', help = 'The range of remote port')
+                metavar = '<start>:<end>', help = 'The range of remote port')
 
         sub_parser = subparsers.add_parser('network',
                 help = 'Virtual Network')
         sub_parser.set_defaults(obj_class = ConfigNetwork,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--ipam', metavar = '<IPAM>',
-                help = 'Name of IPAM')
-        sub_parser.add_argument('--subnet', metavar = '<prefix/length>',
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
+        sub_parser.add_argument('--ipam', metavar = '<name>',
+                help = 'The name of IPAM')
+        sub_parser.add_argument('--subnet', metavar = '<prefix>/<length>',
                 help = 'Subnet prefix and length')
-        sub_parser.add_argument('--gateway', metavar = '<gateway>',
-                help = 'The gateway of subnet')
-        sub_parser.add_argument('--policy', metavar = '<policy>',
-                help = 'Network policy')
-        sub_parser.add_argument('--route-target', metavar = '<route target>',
+        sub_parser.add_argument('--gateway', metavar = '<address>',
+                help = 'The gateway address of subnet')
+        sub_parser.add_argument('--policy', metavar = '<name>',
+                help = 'The name of network policy')
+        sub_parser.add_argument('--route-target', metavar = '<AS>:<RT>',
                 help = 'Route target')
-        sub_parser.add_argument('--route-table', metavar = '<route table>',
-                help = 'Route table')
+        sub_parser.add_argument('--route-table', metavar = '<name>',
+                help = 'The name of route table')
         sub_parser.add_argument('--l2', action = 'store_true',
                 help = 'Layer 2 network, layer 2&3 by default')
         sub_parser.add_argument('--shared', action = 'store_true',
@@ -137,7 +139,8 @@ class ConfigShell():
                 help = 'Floating IP Pool')
         sub_parser.set_defaults(obj_class = ConfigFloatingIpPool,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<network>:<pool>', help = 'Name')
         #sub_parser.add_argument('--floating-ip', action = 'store_true',
         #        help = 'Floating IP')
 
@@ -145,18 +148,19 @@ class ConfigShell():
                 help = 'Virtual Machine')
         sub_parser.set_defaults(obj_class = ConfigVirtualMachine,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--image', metavar = '<image>',
-                help = 'Name of image')
-        sub_parser.add_argument('--flavor', metavar = '<flavor>',
-                help = 'Name of flavor')
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
+        sub_parser.add_argument('--image', metavar = '<name>',
+                help = 'The name of image')
+        sub_parser.add_argument('--flavor', metavar = '<name>',
+                help = 'The name of flavor')
         sub_parser.add_argument('--network', action = 'append',
-                metavar = '<network>',
-                help = 'Name of network')
-        sub_parser.add_argument('--user-data', metavar = '<fine name>',
+                metavar = '<name>',
+                help = 'The name of network')
+        sub_parser.add_argument('--user-data', metavar = '<name>',
                 help = 'Full file name containing user data')
-        sub_parser.add_argument('--node', metavar = '<node name>',
-                help = 'Name of compute node')
+        sub_parser.add_argument('--node', metavar = '<name>',
+                help = 'The name of compute node')
         sub_parser.add_argument('--wait', action = 'store_true',
                 help = 'Wait till VM is active')
 
@@ -164,14 +168,17 @@ class ConfigShell():
                 help = 'Interface Route Table')
         sub_parser.set_defaults(obj_class = ConfigInterfaceRouteTable,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--route', action = 'append')
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
+        sub_parser.add_argument('--route', action = 'append',
+                metavar = '<prefix>/<length>', help = 'Route')
 
         sub_parser = subparsers.add_parser('route-table',
                 help = 'Network Route Table')
         sub_parser.set_defaults(obj_class = ConfigRouteTable,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
         sub_parser.add_argument('--route', action = 'append',
                 metavar = '<prefix>/<length>:<next-hop>',
                 help = 'The route and next-hop')
@@ -180,20 +187,22 @@ class ConfigShell():
                 help = 'Virtual Machine Interface')
         sub_parser.set_defaults(obj_class = ConfigVmInterface,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
-        sub_parser.add_argument('--interface-route-table',
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
+        sub_parser.add_argument('--interface-route-table', metavar = '<name>',
                 help = 'The name of interface route table')
-        sub_parser.add_argument('--security-group', metavar = 'security group',
+        sub_parser.add_argument('--security-group', metavar = '<name>',
                 help = 'The name of security group')
         sub_parser.add_argument('--address',
-                metavar = '<IP address>',
+                metavar = '<address>',
                 help = 'IP address')
         sub_parser.add_argument('--floating-ip',
-                metavar = 'any | <floating IP>',
-                help = 'Floating IP')
+                metavar = '<address>',
+                help = 'Floating IP address. [ any | <address> ]')
         sub_parser.add_argument('--floating-ip-pool',
-                metavar = '<tenant>:<network>:<floating IP pool>',
-                help = 'The floating IP pool to allocate a floating IP from')
+                metavar = '<pool>',
+                help = 'The floating IP pool to allocate a floating IP from. ' \
+                       '<tenant>:<network>:<floating IP pool>')
 
         sub_parser = subparsers.add_parser('image',
                 help = 'Virtual Machine Image')
@@ -211,40 +220,44 @@ class ConfigShell():
                 help = 'Service Template')
         sub_parser.set_defaults(obj_class = ConfigServiceTemplate,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
         sub_parser.add_argument('--mode',
                 choices = ['transparent', 'in-network', 'in-network-nat'],
                 metavar = '<mode>',
-                help = 'Service mode [ transparent | in-network | in-network-nat ]')
+                help = 'Service mode ' \
+                       '[ transparent | in-network | in-network-nat ]')
         sub_parser.add_argument('--type',
                 choices = ['firewall', 'analyzer'],
                 metavar = '<type>',
                 help = 'Service type [ firewall | analyzer ]')
-        sub_parser.add_argument('--image', metavar = '<image>',
-                help = 'Name of image')
-        sub_parser.add_argument('--flavor', metavar = '<flavor>',
-                help = 'Name of flavor')
+        sub_parser.add_argument('--image', metavar = '<name>',
+                help = 'The name of image')
+        sub_parser.add_argument('--flavor', metavar = '<name>',
+                help = 'The name of flavor')
         sub_parser.add_argument('--scale', action = 'store_true',
                 help = 'Enable service scaling')
         sub_parser.add_argument('--interface',
                 choices = ['management', 'left', 'right', 'other'],
                 metavar = '<type>',
                 action = 'append',
-                help = 'Service interface [ management | left | right | other ]')
+                help = 'Service interface ' \
+                       '[ management | left | right | other ]')
 
         sub_parser = subparsers.add_parser('service-instance',
                 help = 'Service Instance')
         sub_parser.set_defaults(obj_class = ConfigServiceInstance,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
         sub_parser.add_argument('--template',
                 metavar = '<template>',
                 help = 'Service template')
         sub_parser.add_argument('--network', action = 'append',
                 metavar = '<arguments>',
-                help = 'network=[ <name> | auto ],tenant=<name>,\n' +
-                       'route=<prefix>/<length> ' +
-                       'The network order must be the same as interface ' +
+                help = 'network=[ <name> | auto ],tenant=<name>,' \
+                       'route=<prefix>/<length> ' \
+                       'The network order must be the same as interface ' \
                        'order defined in service template.')
         sub_parser.add_argument('--scale-max',
                 metavar = '<number>',
@@ -256,13 +269,16 @@ class ConfigShell():
                 help = 'Link Local Service')
         sub_parser.set_defaults(obj_class = ConfigGlobalVrouter,
                 obj_parser = sub_parser)
-        sub_parser.add_argument('name', nargs = '?', default = None)
+        sub_parser.add_argument('name', nargs = '?', default = None,
+                metavar = '<name>', help = 'Name')
         sub_parser.add_argument('--link-local-address',
-                metavar = '<link local address>:<link local port>',
-                help = 'Link Local service address and port')
+                metavar = '<address>',
+                help = 'Link Local service address and port ' \
+                       '<link local address>:<link local port>')
         sub_parser.add_argument('--fabric-address',
-                metavar = '<fabric address>:<fabric port>',
-                help = 'Fabric address and port')
+                metavar = '<address>',
+                help = 'Fabric address and port ' \
+                       '<fabric address>:<fabric port>')
         self.parser = parser
 
     def parse(self, argv = None):
@@ -282,9 +298,7 @@ class ConfigShell():
                 obj.add(args.name, args.dns_type, args.virtual_dns,
                         args.tenant_dns, args.domain_name, args.ntp_server)
             elif (args.obj_class == ConfigPolicy):
-                obj.add(args.name, args.direction, args.protocol,
-                        args.src_net, args.dst_net, args.src_port,
-                        args.dst_port, args.action, args.service)
+                obj.add(args.name, args.rule)
             elif (args.obj_class == ConfigSecurityGroup):
                 obj.add(args.name, args.protocol, args.address, args.port,
                         args.direction)
