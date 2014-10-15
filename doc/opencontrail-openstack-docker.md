@@ -34,6 +34,7 @@ $ sudo usermod -G libvirtd,docker nova
 ```
 
 ## Install nova-docker
+This is the fork from nova-docker, in addition with OpenContrail VIF driver and some fixes.
 ```
 $ git clone https://github.com/tonyliu0592/nova-docker.git
 $ cd nova-docker
@@ -43,7 +44,7 @@ $ sudo cp etc/nova/rootwrap.d/docker.filters /etc/nova/rootwrap.d/
 ```
 
 ## Update Nova compute configuration
-Update /etc/nova/nova-compute.conf.
+On compute node, update /etc/nova/nova-compute.conf to set Nova driver and Docker VIF driver.
 ```
 -compute_driver = libvirt.LibvirtDriver
 +compute_driver = novadocker.virt.docker.DockerDriver
@@ -52,12 +53,7 @@ Update /etc/nova/nova-compute.conf.
 +vif_driver = novadocker.virt.docker.opencontrail.OpenContrailVIFDriver
 ``` 
 
-## Update Nova
-```
-$ sudo wget https://raw.githubusercontent.com/openstack/nova/master/nova/openstack/common/units.py
-```
-
-Restart Nova compute service.
+Restart Nova compute service to apply all changes.
 ```
 $ sudo service nova-compute restart
 ```
