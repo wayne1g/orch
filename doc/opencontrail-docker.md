@@ -80,8 +80,8 @@ $ ./config add network green --ipam ipam-default --subnet 192.168.20.0/24
 #### Create containers
 Create two containers. Type CTRL-p and CTRL-q to exit container and keep it running.
 ```
-$ sudo docker run -i -t ubuntu /bin/bash
-$ sudo docker run -i -t ubuntu /bin/bash
+$ sudo docker run -i -t --net="none" ubuntu /bin/bash
+$ sudo docker run -i -t --net="none" ubuntu /bin/bash
 ```
 
 #### Connect container to virtual network
