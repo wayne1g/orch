@@ -62,7 +62,7 @@ This utility does all configurations to connect vRouter and container.
 
 #### 2.1.4 Utlity of config
 ```
-$ git clone https://github.com/tonyliu0592/orch.git
+$ git clone https://github.com/tonyliu0592/opencontrail-config.git
 ```
 This utility does OpenContrail configurations. Update `config` with correct settings.
 
@@ -71,7 +71,7 @@ This utility does OpenContrail configurations. Update `config` with correct sett
 #### Create virtual networks
 Create two virtual networks, "red" and "green", in tenant "admin". Assume tenant "admin" is already created.
 ```
-$ cd orch
+$ cd opencontrail-config/opencontrail_config
 $ ./config add ipam ipam-default
 $ ./config add network red --ipam ipam-default --subnet 192.168.10.0/24
 $ ./config add network green --ipam ipam-default --subnet 192.168.20.0/24
@@ -106,7 +106,7 @@ Now, two containers are connected to two virtual networks respectively. Policy n
 #### Connect virtual networks by network policy
 Create a policy to pass all traffic and attach to two virtual networks.
 ```
-$ cd ../../orch
+$ cd ../../opencontrail-config/opencontrail_config
 $ ./config add policy policy-default
 $ ./config add network red --policy policy-default
 $ ./config add network green --policy policy-default
