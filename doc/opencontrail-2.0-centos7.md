@@ -1,6 +1,6 @@
 # Install and Configure OpenContrail 2.0 on CentOS 7
 
-This installation of OpenContrail is based on CentOS 7.0.1406 host installed from CentOS-7.0-1406-x86_64-Minimal.iso.
+This installation of OpenContrail is based on CentOS 7.0.1406 host installed from `CentOS-7.0-1406-x86_64-Minimal.iso`.
 ```
 Linux vm201 3.10.0-123.el7.x86_64 #1 SMP Mon Jun 30 12:09:22 UTC 2014 x86_64 x86_64 x86_64 GNU/Linux
 CentOS Linux release 7.0.1406 (Core) 
@@ -9,11 +9,11 @@ This guide is for single-node installation.
 
 ##1 Pre-installation
 Some updates are required before installing OpenContrail.
-*Configure network interface.
-*Update /etc/hostname with the hostname.
-*Update /etc/hosts with the IP address and hostname, so hostname will be resolved properly.
-*Update /etc/sysconfig/selinux to disable SELinux (for example, to allow haproxy bind on front-end ports).
-*Disable firewall.
+* Configure network interface.
+* Update /etc/hostname with the hostname.
+* Update /etc/hosts with the IP address and hostname, so hostname will be resolved properly.
+* Update /etc/sysconfig/selinux to disable SELinux (for example, to allow haproxy bind on front-end ports).
+* Disable firewall.
 ```
 # systemctl stop firewalld
 # systemctl disable firewalld
@@ -31,14 +31,9 @@ Setup local repository.
 # cd local-repo
 # ./setup.sh
 ```
-Update setup script and run it to install OpenContrail.
+Update parameters in `setup.params`, then run `setup.sh`.
 ```
 # cd ../contrail
-# sed -i 's/nic=__DEVICE__/nic=<interface name>/' setup.sh
-# sed -i 's/host_name=__HOST_NAME__/host_name=<host name>/' setup.sh
-# sed -i 's/host_ip=__HOST_IP__/host_ip=<host IP>/' setup.sh
-# sed -i 's/host_ip_prefix=__HOST_IP_PREFIX__/host_ip_prefix=<IP prefix length>/' setup.sh
-# sed -i 's/gateway=__GATEWAY__/gateway=<gateway>/' setup.sh
 # ./setup.sh
 ```
 After installation completed, reboot.
