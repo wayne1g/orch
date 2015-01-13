@@ -31,10 +31,13 @@ Setup local repository.
 # cd local-repo
 # ./setup.sh
 ```
-Update parameters in `setup.params`, then run `setup.sh`.
+Update parameters in `setup.params`.
+On controller node, run `setup.sh controller`.
+On compute node, run `setup.sh compute`.
 ```
 # cd ../contrail
-# ./setup.sh
+# ./setup.sh controller
+# ./setup.sh compute
 ```
 After installation completed, reboot.
 ```
@@ -46,6 +49,7 @@ Copy docker.tgz to /opt.
 ```
 # cd /opt
 # tar xzf docker.tgz
+# tar xzf utils.tgz
 # yum localinstall /opt/docker/docker-1.2.0-1.8.el7.centos.x86_64.rpm
 # systemctl enable docker
 # systemctl start docker
@@ -55,7 +59,7 @@ Copy docker.tgz to /opt.
 ##4 Example
 Create virtual networks and network policy.
 ```
-# cd /opt/docker/opencontrail-config/opencontrail_config
+# cd /opt/utils/opencontrail-config/opencontrail_config
 # ./config add tenant admin
 # ./config add ipam ipam-default
 # ./config add policy policy-default
@@ -69,7 +73,7 @@ Create two Docker containers. Use Ctrl-p and Ctrl-q to exit container to keep co
 ```
 Connect containers to virtual networks.
 ```
-# cd /opt/docker/opencontrail-netns/opencontrail_netns
+# cd /opt/utils/opencontrail-netns/opencontrail_netns
 # mkdir -p /var/run/netns
 # python docker.py -s <host IP> -n red --project default-domain:admin --start <container ID>
 # python docker.py -s <host IP> -n green --project default-domain:admin --start <container ID>
