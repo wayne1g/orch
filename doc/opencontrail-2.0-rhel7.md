@@ -28,12 +28,12 @@
 # virsh console <VM name>
 ```
 * Configure the following items.
-** Network interface, gateway, DNS, etc.
-** Host name in `/etc/hostname`
-** Resovable host name in `/etc/hosts`
-** NTP
-** Disable SELinux in `/etc/sysconfig/selinux`.
-** Enable `PasswordAuthentication` in `/etc/ssh/sshd_config`.
+  * Network interface, gateway, DNS, etc.
+  * Host name in `/etc/hostname`
+  * Resovable host name in `/etc/hosts`
+  * NTP
+  * Disable SELinux in `/etc/sysconfig/selinux`.
+  * Enable `PasswordAuthentication` in `/etc/ssh/sshd_config`.
 * Reboot.
 * Login VM by SSH.
 * Register subscription and repos.
