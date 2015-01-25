@@ -32,7 +32,6 @@
   * Host name in `/etc/hostname`
   * Resovable host name in `/etc/hosts`
   * NTP
-  * Disable SELinux in `/etc/sysconfig/selinux`.
   * Enable `PasswordAuthentication` in `/etc/ssh/sshd_config`.
 * Reboot.
 * Login VM by SSH.
@@ -83,6 +82,9 @@
 ```
 # cp -r /lib/modules/3.10.0-123.el7.x86_64/extra/net /lib/modules/$(uname -r)/extra
 ```
+* Disable SELinux.
+  * Edit `/etc/selinux/config` and set `SELINUX` to `disabled`. This change is permanent but requires reboot.
+  * Run command `setenforce 0`. This change is transit but takes effect immediately.
 # Provisioning Contrail.
 ```
 # cd /opt/contrail/utils
@@ -334,7 +336,7 @@ env.keystone = {
 #
 env.openstack = {
     'service_token' : 'aa0f54bf01884671a758f146a9b2c5be', #Common service token for for all openstack services
-#    'amqp_host' : '10.204.217.19',            #IP of AMQP Server to be used in openstack
+    'amqp_host' : '10.161.208.134',            #IP of AMQP Server to be used in openstack
 #    'manage_amqp' : 'yes',                    #Default no, Manage seperate AMQP for openstack services in openstack nodes.
 }
 
